@@ -1,0 +1,23 @@
+{
+  "name": "demotype",
+  "version": "1.0.0",
+  "description": "",
+  "main": "server.js",
+  "scripts": {
+    "test": "echo \"Error: no test specified\" && exit 1",
+    "start": "nodemon server.ts"
+  },
+  "keywords": [],
+  "author": "",
+  "license": "ISC",
+  "dependencies": {
+    "@types/express": "^4.17.21",
+    "@types/node": "^20.11.15",
+    "aws-sdk": "^2.1549.0",
+    "express": "^4.18.2",
+    "nodemon": "^3.0.3"
+  },
+  "devDependencies": {
+    "ts-node": "^10.9.2"
+  }
+}
