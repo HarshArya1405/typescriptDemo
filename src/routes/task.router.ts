@@ -10,6 +10,5 @@ taskRouter.get('/task/:id', taskController.get);
 taskRouter.put('/task/:id', taskController.update);
 taskRouter.delete('/task/:id', taskController.delete);
 taskRouter.get('/tasks', taskController.list);
-taskRouter.get('/tasks/list', taskController.list);
 
 export default taskRouter;
