@@ -1,4 +1,4 @@
-import Task from "../model/task.model";
+import {Task} from "../models";
 import { Op } from "sequelize";
 
 interface ITaskService {

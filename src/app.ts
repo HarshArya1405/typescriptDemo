@@ -1,9 +1,8 @@
 
 import express, { Application } from "express";
 import cors, { CorsOptions } from "cors";
-import taskRouter from './modules/task/router/task.router';
-import Routes from "./config/route";
-import Database from "./config/DB/index";
+import Routes from "./routes";
+import Database from "./config/DB";
 
 export default class Server {
   constructor(app: Application) {

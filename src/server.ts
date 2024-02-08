@@ -1,5 +1,5 @@
 import express, { Application } from "express";
-import Server from "./index";
+import Server from "./app";
 
 const app: Application = express();
 const server: Server = new Server(app);

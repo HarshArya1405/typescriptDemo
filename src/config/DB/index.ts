@@ -1,6 +1,6 @@
 import { Sequelize } from "sequelize-typescript";
 import { config, dialect } from "./db.config";
-import Task from "../../modules/task/model/task.model";
+import {Task} from "../../models";
 
 class Database {
   public sequelize: Sequelize | undefined;
