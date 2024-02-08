@@ -31,5 +31,23 @@ export default class TaskController{
             throw error;
         }
     };
+    async update(req:Request,res:Response):Promise<void>{
+        try {
+            const data = await taskService.update(req.body,parseInt(req.params.id));
+            res.send(data)
+        } catch (error) {
+            console.error(`tasks: get: error - ${JSON.stringify(error, null, 2)}`);
+            throw error;
+        }
+    };
+    async delete(req:Request,res:Response):Promise<void>{
+        try {
+            const data = await taskService.delete(parseInt(req.params.id));
+            res.send({data})
+        } catch (error) {
+            console.error(`tasks: get: error - ${JSON.stringify(error, null, 2)}`);
+            throw error;
+        }
+    };
 
 }

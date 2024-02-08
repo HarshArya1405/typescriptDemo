@@ -1,14 +1,18 @@
+import express, { Application } from "express";
+import Server from "./index";
 
-import express from 'express';
-import taskRouter from './modules/task/router/task.router';
+const app: Application = express();
+const server: Server = new Server(app);
+const PORT: number = process.env.PORT ? parseInt(process.env.PORT, 10) : 8080;
 
-const app:express.Application = express();
-app.use(express.json({ limit: '50mb' }));
-app.use(taskRouter);
-
-const hostName : string = '127.0.0.1'
-const port :number = 5000;
-
-app.listen(port,hostName,()=>{
-    console.log(`Node server is up and running at - http://${hostName}:${port}`);
-});
+app
+  .listen(PORT, "localhost", function () {
+    console.log(`Server is running on port ${PORT}.`);
+  })
+  .on("error", (err: any) => {
+    if (err.code === "EADDRINUSE") {
+      console.log("Error: address already in use");
+    } else {
+      console.log(err);
+    }
+  });
