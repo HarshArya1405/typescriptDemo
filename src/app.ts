@@ -1,19 +1,20 @@
-
-import express, { Application } from "express";
-import cors, { CorsOptions } from "cors";
-import Routes from "./routes";
-import Database from "./config/DB";
+import express, { Application } from 'express';
+import cors, { CorsOptions } from 'cors';
+import Routes from './routes';
+import Database from './config/DB';
+import dotenv from 'dotenv';
+dotenv.config(); 
 
 export default class Server {
-  constructor(app: Application) {
-    this.config(app);
-    this.syncDatabase();
-    new Routes(app);
-  }
+constructor(app: Application) {
+  this.config(app);
+  this.syncDatabase();
+  new Routes(app);
+}
 
   private config(app: Application): void {
     const corsOptions: CorsOptions = {
-      origin: "http://localhost:8081"
+      origin: 'http://localhost:8080'
     };
 
     app.use(cors(corsOptions));
