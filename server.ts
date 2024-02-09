@@ -7,6 +7,7 @@ import Server from './src/app';
 
 const app: Application = express();
 new Server(app);
+
 const PORT: number = parseInt(ENV.servicePort, 10);
 
 app

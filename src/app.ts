@@ -3,6 +3,8 @@ import cors, { CorsOptions } from 'cors';
 import Routes from './routes';
 import Database from './config/DB';
 import ENV from './config/environments';
+import { requestLogger } from './util/request.logger';
+
 export default class Server {
 constructor(app: Application) {
   this.config(app);
@@ -17,6 +19,8 @@ constructor(app: Application) {
     app.use(cors(corsOptions));
     app.use(express.json());
     app.use(express.urlencoded({ extended: true }));
+    app.use(requestLogger);
+    
   }
 
   private syncDatabase(): void {

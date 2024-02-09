@@ -1,32 +1,32 @@
-import { Model, Table, Column, DataType } from "sequelize-typescript";
+import { Model, Table, Column, DataType } from 'sequelize-typescript';
 
 @Table({
-  tableName: "task",
+  tableName: 'task',
 })
-export default class Tutorial extends Model {
+export default class Task extends Model {
   @Column({
     type: DataType.INTEGER,
     primaryKey: true,
     autoIncrement: true,
-    field: "id"
+    field: 'id'
   })
   id?: number;
 
   @Column({
     type: DataType.STRING(255),
-    field: "title"
+    field: 'title'
   })
   title?: string;
 
   @Column({
     type: DataType.STRING(255),
-    field: "description"
+    field: 'description'
   })
   description?: string;
 
   @Column({
     type: DataType.BOOLEAN,
-    field: "published"
+    field: 'published'
   })
   published?: boolean;
 }

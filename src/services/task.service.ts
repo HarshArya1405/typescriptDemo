@@ -1,6 +1,5 @@
 import { Task } from '../models';
 import { Op } from 'sequelize';
-import logger from '../util/logger';
 
 interface ITaskService {
     create(task: Task): Promise<Task>;
@@ -15,8 +14,6 @@ class TaskService implements ITaskService {
 
 	async create(task: Task): Promise<Task> {
 		try {
-			console.log({ task });
-
 			return await Task.create({
 				title: task.title,
 				description: task.description,
@@ -38,9 +35,6 @@ class TaskService implements ITaskService {
             };
 
             const condition: Condition = {};
-            logger.info('INFO - Failed to retrieve Tasks!');
-            logger.warn('WARN - Failed to retrieve Tasks!');
-            logger.error('ERROR - Failed to retrieve Tasks!');
             if (searchParams.published !== undefined) {
             	condition.published = searchParams.published;
             }
