@@ -4,12 +4,7 @@ interface DBConfig {
         USER?: string;
         PASSWORD?: string;
         DB?: string;
-        pool:{
-            max?:number ,
-            min?:number ,
-            acquire?:number ,
-            idle?:number 
-        }
+        DIALECT : string
     }
 }
 const dbConfig : DBConfig = {
@@ -18,12 +13,7 @@ const dbConfig : DBConfig = {
         USER: process.env.DB_USER ?? 'postgres',
         PASSWORD: process.env.DB_PASSWORD ?? 'postgres',
         DB: process.env.DB_NAME ?? 'testdb',
-        pool: {
-          max: 5,
-          min: 0,
-          acquire: 30000,
-          idle: 10000
-        }
+        DIALECT: process.env.DB_DIALECT ?? 'postgres'
     }
 };
 

@@ -1,14 +1,16 @@
+import ENV from '../environments';
+import { Dialect } from 'sequelize/types';
+
 export const config = {
-    HOST: "localhost",
-    USER: "postgres",
-    PASSWORD: "postgres",
-    DB: "testdb",
-    pool: {
+    HOST: ENV.postgres.HOST,
+    USER: ENV.postgres.USER,
+    PASSWORD: ENV.postgres.PASSWORD,
+    DB: ENV.postgres.DB,
+    POOL: {
       max: 5,
       min: 0,
       acquire: 30000,
       idle: 10000
-    }
+    },
   };
-  
-  export const dialect = "postgres";
+  export const dialect: Dialect = ENV.postgres.DIALECT as Dialect;

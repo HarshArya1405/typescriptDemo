@@ -1,6 +1,7 @@
 interface BaseConfig {
     appNamespace: string;
     servicePort: string;
+    baseAppURL:string;
     jwtSecret?: string;
     jwtForResetPasswordSecret?: string;
     mmi?: {
@@ -9,10 +10,10 @@ interface BaseConfig {
         apiKey?: string;
     };
 }
-
 const baseConfig: BaseConfig = {
     appNamespace: process.env.BASE_APP_NAMESPACE ?? 'auth',
-    servicePort: process.env.BASE_APP_PORT ?? '3008',
+    servicePort: process.env.BASE_APP_PORT ?? '8080',
+    baseAppURL:process.env.BASE_APP_URL ?? '',
     jwtSecret: process.env.AUTH_ACCESS_JWT_SECRET,
     jwtForResetPasswordSecret: process.env.AUTH_ACCESS_JWT_SECRET_RESET_PASSWORD,
     mmi: {

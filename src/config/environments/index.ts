@@ -13,4 +13,4 @@ const mergedEnvironmentConfig = {
 };
 
 Object.freeze(mergedEnvironmentConfig);
-module.exports = mergedEnvironmentConfig;
+export default mergedEnvironmentConfig;

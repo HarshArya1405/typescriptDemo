@@ -1,6 +1,6 @@
-import { Sequelize } from "sequelize-typescript";
-import { config, dialect } from "./db.config";
-import {Task} from "../../models";
+import { Sequelize } from 'sequelize-typescript';
+import { config,dialect} from './db.config';
+import {Task} from '../../models';
 
 class Database {
   public sequelize: Sequelize | undefined;
@@ -17,10 +17,10 @@ class Database {
       host: config.HOST,
       dialect: dialect,
       pool: {
-        max: config.pool.max,
-        min: config.pool.min,
-        acquire: config.pool.acquire,
-        idle: config.pool.idle
+        max: config.POOL.max,
+        min: config.POOL.min,
+        acquire: config.POOL.acquire,
+        idle: config.POOL.idle
       },
       models: [Task]
     });
@@ -28,10 +28,10 @@ class Database {
     await this.sequelize
       .authenticate()
       .then(() => {
-        console.log("Connection has been established successfully.");
+        console.log('Connection has been established successfully.');
       })
       .catch((err) => {
-        console.error("Unable to connect to the Database:", err);
+        console.error('Unable to connect to the Database:', err);
       });
   }
 }
