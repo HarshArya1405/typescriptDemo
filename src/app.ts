@@ -1,6 +1,5 @@
 import express, { Application } from 'express';
 import cors, { CorsOptions } from 'cors';
-import Routes from './routes';
 import Database from './config/DB';
 import ENV from './config/environments';
 import { requestLogger } from './util/request.logger';
@@ -10,7 +9,6 @@ export default class Server {
   constructor(app: Application) {
     this.config(app); // Configuring the Express application
     this.syncDatabase(); // Synchronizing the database
-    new Routes(app); // Initializing routes
   }
 
   // Function to configure the Express application

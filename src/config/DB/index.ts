@@ -1,6 +1,6 @@
 import { Sequelize } from 'sequelize-typescript';
 import { config,dialect} from './db.config';
-import {Task} from '../../models';
+import {Task} from '../../api/models';
 import logger from '../../util/logger';
 
 class Database {
