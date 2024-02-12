@@ -1,7 +1,6 @@
 import { Sequelize } from 'sequelize-typescript';
 import { config,dialect} from './db.config';
-import {Task} from '../../models';
-import logger from '../../util/logger';
+import {Task, User} from '../../models';
 
 class Database {
   public sequelize: Sequelize | undefined;
@@ -23,10 +22,7 @@ class Database {
         acquire: config.POOL.acquire,
         idle: config.POOL.idle
       },
-      models: [Task],
-      logging: (sql: string) => {
-        logger.info(`Executing query: ${sql}`);
-    }
+      models: [Task, User]
     });
 
     await this.sequelize
