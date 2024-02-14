@@ -4,10 +4,11 @@ import { createExpressServer } from 'routing-controllers';
 import { TaskController } from './src/api/controllers/task.controller';
 import ENV from './src/config/environments';
 import Server from './src/app';
+import './src/loaders/typeormLoader';
+
 import logger from './src/util/logger'; 
 import dotenv from 'dotenv';
 dotenv.config(); 
-
 
 const app = createExpressServer({
   controllers: [TaskController], // Register the TaskController

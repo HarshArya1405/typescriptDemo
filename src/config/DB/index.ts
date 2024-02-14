@@ -1,43 +1,21 @@
-import { Sequelize } from 'sequelize-typescript';
-import { config,dialect} from './db.config';
-import {Task} from '../../api/models';
-import logger from '../../util/logger';
+// // src/index.ts
+// import "reflect-metadata";
+// import { createConnection } from "typeorm";
 
-class Database {
-  public sequelize: Sequelize | undefined;
+// async function main() {
+//   try {
+//     // Create a TypeORM connection
+//     const connection = await createConnection();
+//     console.log("Connected to the database.");
 
-  constructor() {
-    this.connectToDatabase();
-  }
+//     // Perform any operations using the connection...
 
-  private async connectToDatabase() {
-    this.sequelize = new Sequelize({
-      database: config.DB,
-      username: config.USER,
-      password: config.PASSWORD,
-      host: config.HOST,
-      dialect: dialect,
-      pool: {
-        max: config.POOL.max,
-        min: config.POOL.min,
-        acquire: config.POOL.acquire,
-        idle: config.POOL.idle
-      },
-      models: [Task],
-      logging: (sql: string) => {
-        logger.info(`Executing query: ${sql}`);
-    }
-    });
+//     // Close the connection when done
+//     await connection.close();
+//     console.log("Connection closed.");
+//   } catch (error) {
+//     console.error("Error connecting to the database:", error);
+//   }
+// }
 
-    await this.sequelize
-      .authenticate()
-      .then(() => {
-        console.log('Connection has been established successfully.');
-      })
-      .catch((err) => {
-        console.error('Unable to connect to the Database:', err);
-      });
-  }
-}
-
-export default Database;
+// main();

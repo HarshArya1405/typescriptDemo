@@ -1,13 +1,11 @@
 import { Op } from 'sequelize';
 
 import { Service } from 'typedi';
-// import { OrmRepository } from 'typeorm-typedi-extensions';
 
-// import { Logger, LoggerInterface } from '../../decorators/Logger';
-import { Task } from '../models';
-// import { TaskRepository } from '../repositories/TaskRepository';
-// import { events } from '../subscribers/events';
+import { Task } from '../models/task.model';
+import { AppDataSource } from '../../loaders/typeormLoader';
 
+const taskRepository = AppDataSource.getRepository(Task);
 @Service()
 export class TaskService {
 	constructor(
@@ -15,17 +13,16 @@ export class TaskService {
 	) { }
 
 
-	public async create(task: Task): Promise<Task> {
-		const savedTask = await Task.create({
-			title: task.title,
-			description: task.description,
-			published: task.published
-		});
-
-		return savedTask.toJSON();
+	public async create(data: Task): Promise<Task> {
+		const task = new Task();
+		task.title = data.title;
+		task.description = data.description;
+		task.published = data.published;
+		await taskRepository.save(task);
+		return task;
 	}
 
-	public async list(searchParams: { title?: string, published?: boolean }): Promise<Task[]> {
+	public async list(searchParams: { title?: string, published?: boolean }): Promise<object> {
 		interface SearchParams {
 			title?: string;
 			published?: boolean;
@@ -41,30 +38,38 @@ export class TaskService {
 		if (searchParams.title) {
 			condition.title = { [Op.like]: `%${searchParams.title}%` };
 		}
-		const tasks = await Task.findAll({ where: condition });
-		return tasks.map(task => task.toJSON());
+		const tasks = await taskRepository.findAndCount();
+		return tasks;
 	}
 
 	public async get(taskId: number): Promise<Task | null> {
-		const task = await Task.findByPk(taskId);
-		return (task) ? task.toJSON() : null;
+		const task = await taskRepository.findOneBy({
+			id: taskId,
+		});
+		return (task) ? task : null;	
 	}
 
-	public async update(taskId: number,task: Task): Promise<object> {
-		const { title, description, published } = task;
-		const taskExist = await this.get(taskId);
-		if(taskExist){
-			await Task.update(
-				{ title, description, published },
-				{ where: { id: taskId } }
-			);
+	public async update(taskId: number,data: Task): Promise<object> {
+		const task = await taskRepository.findOneBy({
+			id: taskId,
+		});
+		if(task){
+			const taskObj  = {task, ...data};
+			await taskRepository.save(taskObj);
 			return { success: true };
 		}
 		return { error: '404' };
 	}
 
 	public async delete(taskId: number): Promise<object> {
-		await Task.destroy({ where: { id: taskId } });
-		return { success: true };
+		// await Task.destroy({ where: { id: taskId } });
+		const task = await taskRepository.findOneBy({
+			id: taskId,
+		});
+		if(task){
+			await taskRepository.remove(task);
+			return { success: true };
+		}
+		return { error: '404' };
 	}
 }

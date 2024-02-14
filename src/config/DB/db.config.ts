@@ -1,16 +1,29 @@
-import ENV from '../environments';
-import { Dialect } from 'sequelize/types';
+// import "reflect-metadata"
+// import ENV from '../environments';
+// import { DataSource } from "typeorm"
+// import { Task } from "../../api/models/task.model";
 
-export const config = {
-    HOST: ENV.postgres.HOST,
-    USER: ENV.postgres.USER,
-    PASSWORD: ENV.postgres.PASSWORD,
-    DB: ENV.postgres.DB,
-    POOL: {
-      max: 5,
-      min: 0,
-      acquire: 30000,
-      idle: 10000
-    },
-  };
-  export const dialect: Dialect = ENV.postgres.DIALECT as Dialect;
+// export const AppDataSource = new DataSource({
+//   type: 'postgres',
+//   host: ENV.postgres.HOST,
+//   port: parseInt(ENV.postgres.PORT),
+//   username: ENV.postgres.USER,
+//   password: ENV.postgres.PASSWORD,
+//   database: ENV.postgres.DB,
+//   synchronize: true,
+//   entities: [
+//     Task
+//   ],
+//   logging: true,
+//   subscribers: [],
+//   migrations: [],
+// })
+
+// // to initialize the initial connection with the database, register all entities
+// // and "synchronize" database schema, call "initialize()" method of a newly created database
+// // once in your application bootstrap
+// AppDataSource.initialize()
+//     .then(() => {
+//         // here you can start to work with your database
+//     })
+//     .catch((error) => console.log(error))

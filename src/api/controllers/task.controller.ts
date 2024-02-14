@@ -3,7 +3,7 @@ import {
     Body, Delete, Get, JsonController, Param, Post, Put, QueryParams
 } from 'routing-controllers';
 import { ResponseSchema } from 'routing-controllers-openapi';
-import { Task } from '../models';
+import {Task} from '../models/task.model';
 import { TaskService } from '../services/task.service';
 
 const taskService =  new TaskService();
@@ -82,7 +82,7 @@ export class TaskController {
 
     @Get()
     @ResponseSchema(TaskResponse, { isArray: true })
-    public async list(@QueryParams() query: GetTasksQuery): Promise<Task[]> {
+    public async list(@QueryParams() query: GetTasksQuery): Promise<object> {
         return taskService.list(query);
     }
 
