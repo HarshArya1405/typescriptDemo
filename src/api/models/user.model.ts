@@ -33,5 +33,5 @@ export class User {
   gender: string = '';
 
   @Column({ nullable: false })
-  password: string = '';
+  authOkey: string = '';
 }

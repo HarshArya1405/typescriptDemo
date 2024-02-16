@@ -42,5 +42,6 @@ module.exports = {
 			'always'
 		],
 		'no-mixed-spaces-and-tabs': 0
-	}
+	},
+	'ignorePatterns': ['./src/api/migrations']
 };

@@ -9,10 +9,10 @@ export class Task {
   title: string = '';
 
   @Column({ nullable: false })
-  name: string = '';
-
-  @Column({ nullable: false })
   description: string = '';
+  
+  @Column({ nullable: true })
+  address: string = '';
 
   @Column({ nullable: false })
   published: boolean = false;

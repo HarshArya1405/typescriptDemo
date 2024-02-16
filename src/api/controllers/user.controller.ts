@@ -39,7 +39,7 @@ class BaseUser {
     public gender!: string;
 
     @IsNotEmpty()
-    public password!: string;
+    public authOkey!: string;
 }
 
 export class UserResponse extends BaseUser {
@@ -60,7 +60,7 @@ export class UserResponse extends BaseUser {
     public gender!: string;
 
     @IsStrongPassword()
-    public password!: string;
+    public authOkey!: string;
 
 }
 
@@ -81,7 +81,7 @@ class CreateUserBody extends BaseUser {
     public gender!: string;
 
     @IsStrongPassword()
-    public password!: string;
+    public authOkey!: string;
 }
 
 
@@ -126,7 +126,7 @@ export class UserController {
         user.title = body.title;
         user.biography = body.biography;
         user.role = body.role;
-        user.password = body.password;
+        user.authOkey = body.authOkey;
         return userService.create(user);
     }
 
@@ -152,7 +152,7 @@ export class UserController {
         user.email = body.email;
         user.phone = body.phone;
         user.gender = body.userName;
-        user.password = body.password;
+        user.authOkey = body.authOkey;
         return userService.update(id, user);
     }
 

@@ -9,9 +9,10 @@
     "lint": "eslint src",
     "precommit": "npm run lint",
     "typeorm": "typeorm-ts-node-esm -d ./src/loaders/typeormLoader.ts",
-    "typeorm-migration": "typeorm-ts-node-esm",
-    "typeorm-migrate:run":"npm run typeorm-migration migration:run -- -d ./src/loaders/typeormLoader.ts",
-    "typeorm-migrate:revert":"npm run typeorm-migration migration:revert -- -d ./src/loaders/typeormLoader.ts"
+    "migration:create": "typeorm-ts-node-esm migration:create ./src/api/migrations/$npm_config_name",
+    "migration:generate": "npm run typeorm migration:generate ./src/api/migrations/$npm_config_name",
+    "migration:run": "npm run typeorm migration:run",
+    "migration:revert": "npm run typeorm migration:revert"
   },
   "keywords": [],
   "author": "",

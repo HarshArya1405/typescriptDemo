@@ -14,7 +14,7 @@ export const AppDataSource = new DataSource({
     entities: [Role,Task,User],
     logging: false,
     subscribers: [],
-    migrations: ['./src/api/migrations/**/*{.ts}'],
+    migrations: ['src/api/migrations/*.ts']
   });
   
   // to initialize the initial connection with the database, register all entities
