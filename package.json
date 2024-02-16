@@ -7,7 +7,11 @@
     "start": "nodemon server.ts",
     "prepare": "husky install",
     "lint": "eslint src",
-    "precommit": "npm run lint"
+    "precommit": "npm run lint",
+    "typeorm": "typeorm-ts-node-esm -d ./src/loaders/typeormLoader.ts",
+    "typeorm-migration": "typeorm-ts-node-esm",
+    "typeorm-migrate:run":"npm run typeorm-migration migration:run -- -d ./src/loaders/typeormLoader.ts",
+    "typeorm-migrate:revert":"npm run typeorm-migration migration:revert -- -d ./src/loaders/typeormLoader.ts"
   },
   "keywords": [],
   "author": "",
@@ -19,6 +23,7 @@
     "cors": "^2.8.5",
     "dotenv": "^16.4.1",
     "express": "^4.18.2",
+    "express-openid-connect": "^2.17.1",
     "microframework-w3tec": "^0.6.3",
     "nodemon": "^3.0.3",
     "pg": "^8.11.3",

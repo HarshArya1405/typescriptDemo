@@ -8,8 +8,6 @@ interface DBConfig {
         DIALECT : string
     }
 }
-console.log({dbConfig:process.env.DB_NAME});
-
 const dbConfig : DBConfig = {
     postgres: {
         HOST: process.env.DB_HOST ?? 'localhost',

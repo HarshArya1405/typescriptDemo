@@ -1,29 +1,22 @@
-import 'reflect-metadata'; 
-// Importing necessary modules and packages
-import { createExpressServer } from 'routing-controllers';
-import { TaskController } from './src/api/controllers/task.controller';
-import ENV from './src/config/environments';
-import Server from './src/app';
-import './src/loaders/typeormLoader';
-
-import logger from './src/util/logger'; 
+import 'reflect-metadata';
 import dotenv from 'dotenv';
 dotenv.config(); 
+import './src/loaders/typeormLoader';
+import { bootstrapMicroframework, MicroframeworkBootstrapConfig } from 'microframework-w3tec';
+import { expressInitLoader,auth0Loader,baseLoader, expressServeLoader} from './src/loaders';
+import logger from './src/util/logger';
 
-const app = createExpressServer({
-  controllers: [TaskController], // Register the TaskController
-});
+const config: MicroframeworkBootstrapConfig = {
+  loaders: [
+    baseLoader,
+    expressInitLoader,
+    auth0Loader,
+    expressServeLoader,
+    // Add any other loaders you need here
+  ],
+  // Other configuration options can be added here
+};
 
-new Server(app);
-// Start the server
-const PORT = ENV.servicePort || 8080;
-app.listen(PORT, () => {
-  logger.info(`Server is running on port ${PORT}`);
-}).on('error', (err: Error) => {
-  // Checking if the error is due to address already in use
-  if (err instanceof Error && (err as NodeJS.ErrnoException).code === 'EADDRINUSE') {
-    logger.error('Error: address already in use'); // Logging address already in use error
-  } else {
-    logger.error(err); // Logging other server startup errors
-  }
-});  
+bootstrapMicroframework(config)
+  .then(() => logger.info('Application is up and running.'))
+  .catch(error => logger.error('Application is crashed: ' + error));

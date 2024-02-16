@@ -1,12 +1,9 @@
 import { Entity, PrimaryGeneratedColumn, Column } from 'typeorm';
 
 @Entity()
-export class Task {
+export class Role {
   @PrimaryGeneratedColumn()
   id: number = 0;
-
-  @Column({ nullable: false })
-  title: string = '';
 
   @Column({ nullable: false })
   name: string = '';
@@ -15,5 +12,5 @@ export class Task {
   description: string = '';
 
   @Column({ nullable: false })
-  published: boolean = false;
+  enabled: boolean = false;
 }

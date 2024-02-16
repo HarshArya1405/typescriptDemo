@@ -62,7 +62,6 @@ export class TaskService {
 	}
 
 	public async delete(taskId: number): Promise<object> {
-		// await Task.destroy({ where: { id: taskId } });
 		const task = await taskRepository.findOneBy({
 			id: taskId,
 		});
