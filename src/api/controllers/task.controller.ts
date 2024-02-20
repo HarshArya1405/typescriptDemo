@@ -28,17 +28,7 @@ export class TaskResponse extends BaseTask {
 
 }
 
-class CreateTaskBody extends BaseTask {
-    @IsNotEmpty()
-    public title: string = '';
-
-    @IsNotEmpty()
-    public description: string = '';
-
-    @IsBoolean()
-    public published: boolean = false;
-}
-
+class CreateTaskBody extends BaseTask {}
 
 class GetTasksQuery {
     @IsPositive()
