@@ -2,6 +2,8 @@ import { DataSource } from 'typeorm';
 import { Task,User,Role } from '../api/models';
 import logger from '../util/logger';
 import ENV from '../config/environments';
+import { Tag } from '../api/models/tag.model';
+import { Protocol } from '../api/models/protocol.model';
 
 export const AppDataSource = new DataSource({
     type: 'postgres',
@@ -11,7 +13,7 @@ export const AppDataSource = new DataSource({
     password: ENV.postgres.PASSWORD,
     database: ENV.postgres.DB,
     synchronize: false,
-    entities: [Role,Task,User],
+    entities: [Role,Task, Tag, Protocol,User],
     logging: false,
     subscribers: [],
     migrations: ['src/api/migrations/*.ts']
