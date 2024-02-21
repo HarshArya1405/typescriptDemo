@@ -38,8 +38,9 @@ export class TaskService {
 		if (searchParams.title) {
 			condition.title = { [Op.like]: `%${searchParams.title}%` };
 		}
-		const tasks = await taskRepository.findAndCount();
-		return tasks;
+		const [tasks, count] = await taskRepository.findAndCount();
+
+		return { count, tasks };
 	}
 
 	public async get(taskId: number): Promise<Task | null> {
