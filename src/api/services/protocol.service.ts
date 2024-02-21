@@ -1,5 +1,6 @@
 import axios from 'axios';
 import { Protocol } from '../models/protocol.model';
+import { FindManyOptions, Like } from 'typeorm';
 import { AppDataSource } from '../../loaders/typeormLoader';
 
 const protocolRepository = AppDataSource.getRepository(Protocol);
@@ -17,7 +18,7 @@ export class ProtocolService {
 
       for (const protocolData of protocolsData) {
         const protocol = new Protocol();
-        protocol.external_id_lama = protocolData.external_id || '';
+        protocol.external_id_lama = protocolData.id || '';
         protocol.slug = protocolData.slug;
         protocol.name = protocolData.name;
         protocol.description = protocolData.description || '';
@@ -35,6 +36,34 @@ export class ProtocolService {
       return protocols;
     } catch (error) {
       console.error('Error fetching and dumping data:', error);
+      throw error;
+    }
+  }
+
+  public async list(offset: number, limit: number, nameFilter: string, categoryFilter: string): Promise<object> {
+    try {
+      const options: FindManyOptions<Protocol> = {
+        skip: offset,
+        take: limit,
+        where: {},
+      };
+
+      // Apply name and category filters simultaneously
+      if (nameFilter && categoryFilter) {
+        options.where = {
+          name: Like(`%${nameFilter}%`),
+          category: Like(`%${categoryFilter}%`)
+        };
+      } else if (nameFilter) {
+        options.where = { name: Like(`%${nameFilter}%`) };
+      } else if (categoryFilter) {
+        options.where = { category: Like(`%${categoryFilter}%`) };
+      }
+
+      const [protocols, count ] = await protocolRepository.findAndCount(options);
+      return  { count, protocols };
+    } catch (error) {
+      console.error('Error listing protocols:', error);
       throw error;
     }
   }
