@@ -50,4 +50,18 @@ export class TagController {
       return { error: '500' };
     }
   }
+
+  @Post('/createTag')
+  @ResponseSchema(Tag)
+  public async createTag(
+    @Body() body: { name: string }
+  ): Promise<Tag> {
+    try {
+      const { name } = body;
+      return await this.tagService.create(name);
+    } catch (error) {
+      console.error('Error creating tag:', error);
+      throw error;
+    }
+  }
 }
