@@ -2,6 +2,18 @@ import { Tag } from '../models/tag.model';
 import { JsonController, Post, Get, Put, Delete, Param, Body, QueryParams } from 'routing-controllers';
 import { ResponseSchema } from 'routing-controllers-openapi';
 import { TagService } from '../services/tag.service';
+import { IsNotEmpty, IsOptional } from 'class-validator';
+
+class UpdateTagDto {
+  @IsOptional()
+  @IsNotEmpty()
+  name!: string;
+}
+
+class CreateTagDto {
+  @IsNotEmpty()
+  name!: string;
+}
 
 @JsonController('/tag')
 export class TagController {
@@ -29,9 +41,12 @@ export class TagController {
   @Put('/:id')
   public async update(
     @Param('id') id: number,
-    @Body() newData: Partial<Tag>
+    @Body() newData: UpdateTagDto
   ): Promise<{ success: boolean } | { error: string }> {
     try {
+      if (!newData.name) {
+        throw new Error('Name is required');
+      }
       const result = await this.tagService.update(id, newData);
       return result;
     } catch (error) {
@@ -54,9 +69,12 @@ export class TagController {
   @Post('/createTag')
   @ResponseSchema(Tag)
   public async createTag(
-    @Body() body: { name: string }
+    @Body() body: CreateTagDto
   ): Promise<Tag> {
     try {
+      if (!body.name) {
+        throw new Error('Name is required');
+      }
       const { name } = body;
       return await this.tagService.create(name);
     } catch (error) {
