@@ -2,16 +2,25 @@ import { Tag } from '../models/tag.model';
 import { JsonController, Post, Get, Put, Delete, Param, Body, QueryParams } from 'routing-controllers';
 import { ResponseSchema } from 'routing-controllers-openapi';
 import { TagService } from '../services/tag.service';
-import { IsNotEmpty, IsOptional } from 'class-validator';
+import { IsNotEmpty, IsNumber, IsOptional } from 'class-validator';
 
-class UpdateTagDto {
-  @IsOptional()
+class BaseTag {
   @IsNotEmpty()
   name!: string;
 }
 
-class CreateTagDto {
+class CreateTagBody extends BaseTag {}
+
+class ListTagsQuery {
+  @IsNumber()
   @IsNotEmpty()
+  limit!: number;
+
+  @IsNumber()
+  @IsNotEmpty()
+  offset!: number;
+
+  @IsOptional()
   name!: string;
 }
 
@@ -32,21 +41,18 @@ export class TagController {
 
   @Get()
   public async list(
-    @QueryParams() query: { offset?: number; limit?: number; name?: string }
+    @QueryParams() query: ListTagsQuery
   ): Promise<object> {
-    const { offset = 0, limit = 10, name = '' } = query;
+    const { offset, limit, name } = query;
     return await this.tagService.list(offset, limit, name);
   }
 
   @Put('/:id')
   public async update(
     @Param('id') id: number,
-    @Body() newData: UpdateTagDto
+    @Body() newData: BaseTag
   ): Promise<{ success: boolean } | { error: string }> {
     try {
-      if (!newData.name) {
-        throw new Error('Name is required');
-      }
       const result = await this.tagService.update(id, newData);
       return result;
     } catch (error) {
@@ -69,12 +75,9 @@ export class TagController {
   @Post('/createTag')
   @ResponseSchema(Tag)
   public async createTag(
-    @Body() body: CreateTagDto
+    @Body() body: CreateTagBody
   ): Promise<Tag> {
     try {
-      if (!body.name) {
-        throw new Error('Name is required');
-      }
       const { name } = body;
       return await this.tagService.create(name);
     } catch (error) {
