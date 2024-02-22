@@ -84,4 +84,25 @@ export class TagService {
       throw error;
     }
   }
+
+  public async create(name: string): Promise<Tag> {
+    try {
+      const tagId = name.toLowerCase().replace(/\s/g, '-');
+      const existingTag = await tagRepository.findOne({ where: { tagId } });
+
+      if (existingTag) {
+        throw new Error('Tag with the same name already exists');
+      }
+
+      const tag = new Tag();
+      tag.tagId = tagId;
+      tag.name = name;
+      await tagRepository.save(tag);
+
+      return tag;
+    } catch (error) {
+      console.error('Error creating tag:', error);
+      throw error;
+    }
+  }
 }
