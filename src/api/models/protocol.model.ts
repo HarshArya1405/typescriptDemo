@@ -1,4 +1,5 @@
-import { Entity, PrimaryGeneratedColumn, Column } from 'typeorm';
+import { Entity, PrimaryGeneratedColumn, Column, ManyToOne } from 'typeorm';
+import { User } from './user.model';
 
 @Entity()
 export class Protocol {
@@ -28,4 +29,7 @@ export class Protocol {
 
   @Column({ nullable: false })
   symbol: string = '';
+
+  @ManyToOne(() => User, user => user.protocols)
+  user!: User;
 }
