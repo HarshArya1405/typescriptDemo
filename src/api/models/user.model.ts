@@ -1,4 +1,6 @@
-import { Entity, PrimaryGeneratedColumn, Column } from 'typeorm';
+import { Entity, PrimaryGeneratedColumn, Column, OneToMany } from 'typeorm';
+import { Tag } from './tag.model';
+import { Protocol } from './protocol.model';
 
 @Entity()
 export class User {
@@ -34,4 +36,10 @@ export class User {
 
   @Column({ nullable: false })
   authOkey: string = '';
+
+  @OneToMany(() => Tag, tag => tag.user)
+  tags!: Tag[];
+
+  @OneToMany(() => Protocol, protocol => protocol.user)
+  protocols!: Protocol[];
 }
