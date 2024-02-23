@@ -4,9 +4,15 @@ import { Service } from 'typedi';
 
 import { User } from '../models/user.model';
 import { AppDataSource } from '../../loaders/typeormLoader';
-import { DuplicateRecordFoundError } from '../errors';
+import { DuplicateRecordFoundError, NoRecordFoundError } from '../errors';
+import { In } from 'typeorm';
+import { Tag } from '../models/tag.model';
+import { Protocol } from '../models/protocol.model';
 
 const userRepository = AppDataSource.getRepository(User);
+const tagRepository = AppDataSource.getRepository(Tag);
+const protocolRepository = AppDataSource.getRepository(Protocol);
+
 @Service()
 export class UserService {
 	constructor(
@@ -82,4 +88,107 @@ export class UserService {
 		}
 		return { error: '404' };
 	}
+
+	public async saveUserTags(userId: number, tagIds: number[]): Promise<User> {
+		const user = await userRepository.findOne({ where: { id: userId }, relations: ['tags'] });
+		if (!user) {
+			throw new NoRecordFoundError('User not found');
+		}
+
+		const tags = await tagRepository.find({ where: { id: In(tagIds) } });
+
+		user.tags = tags;
+		await userRepository.save(user);
+
+		return user;
+	}
+
+	public async updateUserTags(userId: number, tagIds: number[]): Promise<User> {
+		const user = await userRepository.findOne({ where: { id: userId }, relations: ['tags'] });
+		if (!user) {
+		  throw new NoRecordFoundError('User not found');
+		}
+	  
+		const tags = await tagRepository.find({ where: { id: In(tagIds) } });
+	  
+		user.tags = tags;
+		await userRepository.save(user);
+	  
+		return user;
+	  }
+
+	  public async listUserTags(userId: number, offset: number, limit: number, nameFilter?: string): Promise<{ tags: Tag[], count: number }> {
+		try {
+			const user = await userRepository.findOne({ 
+				where: { id: userId }, 
+				relations: ['tags'],
+			});
+			if (!user) {
+				throw new NoRecordFoundError('User not found');
+			}
+			let userTags = user.tags;
+			if (nameFilter) {
+				userTags = userTags.filter(tag => tag.name.includes(nameFilter));
+			}
+			const totalCount = userTags.length;
+			userTags = userTags.slice(offset, offset + limit);
+			return { tags: userTags, count: totalCount };
+		} catch (error) {
+			console.error('Error listing user tags:', error);
+			throw error;
+		}
+	}	
+	  
+	  public async saveUserProtocols(userId: number, protocolIds: number[]): Promise<User> {
+		const user = await userRepository.findOne({ where: { id: userId }, relations: ['protocols'] });
+		if (!user) {
+			throw new NoRecordFoundError('User not found');
+		}
+
+		const protocols = await protocolRepository.find({ where: { id: In(protocolIds) } });
+
+		user.protocols = protocols;
+		await userRepository.save(user);
+
+		return user;
+	}
+
+	public async updateUserProtocols(userId: number, protocolIds: number[]): Promise<User> {
+		const user = await userRepository.findOne({ where: { id: userId }, relations: ['protocols'] });
+		if (!user) {
+		  throw new NoRecordFoundError('User not found');
+		}
+	  
+		const protocols = await protocolRepository.find({ where: { id: In(protocolIds) } });
+	  
+		user.protocols = protocols;
+		await userRepository.save(user);
+	  
+		return user;
+	  }
+
+	  public async listUserProtocols(userId: number, offset: number, limit: number, nameFilter?: string, categoryFilter?: string): Promise<{ protocols: Protocol[], count: number }> {
+		try {
+			const user = await userRepository.findOne({ 
+				where: { id: userId }, 
+				relations: ['protocols'],
+			});
+			if (!user) {
+				throw new NoRecordFoundError('User not found');
+			}
+			let userProtocols = user.protocols;
+			if (nameFilter) {
+				userProtocols = userProtocols.filter(protocol => protocol.name.includes(nameFilter));
+			}
+			if (categoryFilter) {
+				userProtocols = userProtocols.filter(protocol => protocol.category === categoryFilter);
+			}
+			const totalCount = userProtocols.length;
+			userProtocols = userProtocols.slice(offset, offset + limit);
+			return { protocols: userProtocols, count: totalCount };
+		} catch (error) {
+			console.error('Error listing user protocols:', error);
+			throw error;
+		}
+	}	
 }
