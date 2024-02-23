@@ -10,10 +10,11 @@ import './src/loaders/typeormLoader';
 import logger from './src/util/logger'; 
 import dotenv from 'dotenv';
 import { ProtocolController } from './src/api/controllers/protocol.controller';
+import { UserController } from './src/api/controllers';
 dotenv.config(); 
 
 const app = createExpressServer({
-  controllers: [TaskController, ProtocolController, TagController], // Register the TaskController
+  controllers: [TaskController, ProtocolController, TagController, UserController], // Register the TaskController
 });
 
 new Server(app);
