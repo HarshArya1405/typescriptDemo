@@ -1,5 +1,4 @@
-import { Entity, PrimaryGeneratedColumn, Column, ManyToOne, CreateDateColumn, UpdateDateColumn, BeforeUpdate } from 'typeorm';
-import { User } from './user.model';
+import { Entity, PrimaryGeneratedColumn, Column, CreateDateColumn, UpdateDateColumn, BeforeUpdate } from 'typeorm';
 
 @Entity()
 export class Tag {
@@ -17,9 +16,6 @@ export class Tag {
   
   @UpdateDateColumn({ type: 'bigint', nullable: false, default: () => 'EXTRACT(EPOCH FROM NOW()) * 1000' })
   updatedAt: number = Date.now(); 
-
-  @ManyToOne(() => User, (user) => user.tags)
-  user!: User;
 
   @BeforeUpdate()
   updateTimestamp() {

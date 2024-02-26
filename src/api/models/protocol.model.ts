@@ -1,5 +1,4 @@
-import { Entity, PrimaryGeneratedColumn, Column, ManyToOne, CreateDateColumn, BeforeUpdate, UpdateDateColumn } from 'typeorm';
-import { User } from './user.model';
+import { Entity, PrimaryGeneratedColumn, Column, CreateDateColumn, BeforeUpdate, UpdateDateColumn } from 'typeorm';
 
 @Entity()
 export class Protocol {
@@ -34,10 +33,7 @@ export class Protocol {
   createdAt: number = Date.now();
 
   @UpdateDateColumn({ type: 'bigint', nullable: false, default: () => 'EXTRACT(EPOCH FROM NOW()) * 1000' })
-  updatedAt: number = Date.now(); 
-
-  @ManyToOne(() => User, user => user.protocols)
-  user!: User;
+  updatedAt: number = Date.now();
 
   @BeforeUpdate()
   updateTimestamp() {
