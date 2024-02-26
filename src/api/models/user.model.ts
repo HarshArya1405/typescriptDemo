@@ -1,4 +1,4 @@
-import { Entity, PrimaryGeneratedColumn, Column, OneToMany, CreateDateColumn, UpdateDateColumn, BeforeUpdate } from 'typeorm';
+import { Entity, PrimaryGeneratedColumn, Column, CreateDateColumn, UpdateDateColumn, BeforeUpdate, ManyToMany, JoinTable } from 'typeorm';
 import { Tag } from './tag.model';
 import { Protocol } from './protocol.model';
 
@@ -43,11 +43,13 @@ export class User {
   @UpdateDateColumn({ type: 'bigint', nullable: false, default: () => 'EXTRACT(EPOCH FROM NOW()) * 1000' })
   updatedAt: number = Date.now();  
 
-  @OneToMany(() => Tag, tag => tag.user)
-  tags!: Tag[];
-
-  @OneToMany(() => Protocol, protocol => protocol.user)
-  protocols!: Protocol[];
+  @ManyToMany(() => Tag)
+      @JoinTable()
+      tags!: Tag[];
+  
+      @ManyToMany(() => Protocol)
+      @JoinTable()
+      protocols!: Protocol[];
 
   @BeforeUpdate()
   updateTimestamp() {
