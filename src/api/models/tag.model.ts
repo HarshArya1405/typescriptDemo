@@ -1,4 +1,5 @@
-import { Entity, PrimaryGeneratedColumn, Column } from 'typeorm';
+import { Entity, PrimaryGeneratedColumn, Column, ManyToOne } from 'typeorm';
+import { User } from './user.model';
 
 @Entity()
 export class Tag {
@@ -11,4 +12,7 @@ export class Tag {
   @Column({ nullable: false })
   name: string = '';
   static save: (tag: Tag) => Promise<Tag>;
+
+  @ManyToOne(() => User, user => user.tags)
+  user!: User;
 }

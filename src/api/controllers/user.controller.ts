@@ -1,4 +1,4 @@
-import { IsNotEmpty, IsNumber,IsNumberString, IsPositive, IsAlpha,IsOptional ,IsAlphanumeric,IsStrongPassword,IsEmail, IsString} from 'class-validator';
+import { IsNotEmpty, IsNumber,IsNumberString, IsPositive, IsAlpha,IsOptional ,IsAlphanumeric,IsStrongPassword,IsEmail, IsString, IsArray} from 'class-validator';
 import {
     Body, Delete, Get, JsonController, Param, Post, Put, QueryParams, UseBefore
 } from 'routing-controllers';
@@ -7,6 +7,8 @@ import { Authentication } from '../middleware/authentication';
 import { ResponseSchema } from 'routing-controllers-openapi';
 import {User} from '../models/user.model';
 import { UserService } from '../services/user.service';
+import { Tag } from '../models/tag.model';
+import { Protocol } from '../models/protocol.model';
 
 const userService =  new UserService();
 
@@ -65,7 +67,7 @@ export class UserResponse extends BaseUser {
 }
 
 class CreateUserBody extends BaseUser {
-    @IsAlpha()
+    @IsString()
     public fullName!: string;
 
     @IsAlphanumeric()
@@ -105,12 +107,55 @@ class GetUsersQuery {
     public phone!: string;
 }
 
+class SaveUserTagsBody {
+    @IsNotEmpty()
+    @IsArray()
+    public tagIds!: number[];
+}
+
+class SaveUserProtocolsBody {
+    @IsNotEmpty()
+    @IsArray()
+    public protocolIds!: number[];
+}
+
+class ListTagsQuery {
+    @IsNumber()
+    @IsNotEmpty()
+    limit!: number;
+  
+    @IsNumber()
+    @IsNotEmpty()
+    offset!: number;
+
+    @IsOptional()
+    name?: string;
+  }
+
+class ListProtocolsQuery {
+    @IsNumber()
+    @IsNotEmpty()
+    limit!: number;
+
+    @IsNumber()
+    @IsNotEmpty()
+    offset!: number;
+
+    @IsOptional()
+    name?: string;
+
+    @IsOptional()
+    category?: string;
+}
+
 // @Authorized()
 @JsonController('/user')
 // @OpenAPI({ security: [{ basicAuth: [] }] })
 export class UserController {
+    private userService: UserService;
 
     constructor() {
+        this.userService = new UserService();
     }
 
     @Post()
@@ -160,4 +205,45 @@ export class UserController {
     public async delete(@Param('id') id: number): Promise<void> {
         await userService.delete(id);
     }
+
+    @Post('/:userId/tags')
+    public async saveUserTags(@Param('userId') userId: number, @Body() body: SaveUserTagsBody): Promise<User> {
+    const { tagIds } = body;
+    return userService.saveUserTags(userId, tagIds);
+  }
+    @Put('/:userId/tags')
+    public async updateUserTags(@Param('userId') userId: number, @Body() body: SaveUserTagsBody): Promise<User> {
+    const { tagIds } = body;
+    return userService.updateUserTags(userId, tagIds);
+  }
+  @Get('/:userId/tags')
+  public async listUserTags(@Param('userId') userId: number, @QueryParams() query: ListTagsQuery): Promise<{ tags: Tag[], count: number }> {
+      const { offset, limit, name } = query;
+      const nameFilter = name || '';
+      const { tags, count } = await this.userService.listUserTags(userId, offset, limit, nameFilter);
+  
+      return { count, tags };
+  }  
+
+  @Post('/:userId/protocols')
+  public async saveUserProtocols(@Param('userId') userId: number, @Body() body: SaveUserProtocolsBody): Promise<User> {
+      const { protocolIds } = body;
+      return userService.saveUserProtocols(userId, protocolIds);
+  }
+
+  @Put('/:userId/protocols')
+  public async updateUserProtocols(@Param('userId') userId: number, @Body() body: SaveUserProtocolsBody): Promise<User> {
+      const { protocolIds } = body;
+      return userService.updateUserProtocols(userId, protocolIds);
+  }
+
+  @Get('/:userId/protocols')
+  public async listUserProtocols(@Param('userId') userId: number, @QueryParams() query: ListProtocolsQuery): Promise<{ protocols: Protocol[], count: number }> {
+      const { offset, limit, name, category } = query;
+      const nameFilter = name || '';
+      const categoryFilter = category || '';
+      const { protocols, count } = await this.userService.listUserProtocols(userId, offset, limit, nameFilter, categoryFilter);
+  
+      return { count, protocols };
+  }
 }
