@@ -119,26 +119,37 @@ export class UserService {
 
 	  public async listUserTags(userId: number, offset: number, limit: number, nameFilter?: string): Promise<{ tags: Tag[], count: number }> {
 		try {
-			const user = await userRepository.findOne({ 
-				where: { id: userId }, 
-				relations: ['tags'],
-			});
-			if (!user) {
-				throw new NoRecordFoundError('User not found');
-			}
-			let userTags = user.tags;
+			const queryBuilder = userRepository.createQueryBuilder('user')
+				.leftJoinAndSelect('user.tags', 'tag')
+				.where('user.id = :userId', { userId });
+	
+			// Apply name filter if provided
 			if (nameFilter) {
-				userTags = userTags.filter(tag => tag.name.includes(nameFilter));
+				queryBuilder.andWhere('tag.name LIKE :nameFilter', { nameFilter: `%${nameFilter}%` });
 			}
-			const totalCount = userTags.length;
-			userTags = userTags.slice(offset, offset + limit);
+	
+			// Count total number of tags without applying limit and offset
+			const totalCount = await queryBuilder.getCount();
+	
+			// Retrieve paginated user tags
+			const users = await queryBuilder
+				.skip(offset)
+				.take(limit)
+				.getMany();
+	
+			// Map user entities to their associated tags
+			const userTags: Tag[] = users.reduce((tags: Tag[], user) => {
+				tags.push(...user.tags);
+				return tags;
+			}, []);
+	
 			return { tags: userTags, count: totalCount };
 		} catch (error) {
 			console.error('Error listing user tags:', error);
 			throw error;
 		}
-	}	
-	  
+	}
+	
 	  public async saveUserProtocols(userId: number, protocolIds: number[]): Promise<User> {
 		const user = await userRepository.findOne({ where: { id: userId }, relations: ['protocols'] });
 		if (!user) {
@@ -169,22 +180,31 @@ export class UserService {
 
 	  public async listUserProtocols(userId: number, offset: number, limit: number, nameFilter?: string, categoryFilter?: string): Promise<{ protocols: Protocol[], count: number }> {
 		try {
-			const user = await userRepository.findOne({ 
-				where: { id: userId }, 
-				relations: ['protocols'],
-			});
-			if (!user) {
-				throw new NoRecordFoundError('User not found');
-			}
-			let userProtocols = user.protocols;
+			const queryBuilder = userRepository.createQueryBuilder('user')
+				.leftJoinAndSelect('user.protocols', 'protocol')
+				.where('user.id = :userId', { userId });
+	
+			// Apply name filter if provided
 			if (nameFilter) {
-				userProtocols = userProtocols.filter(protocol => protocol.name.includes(nameFilter));
+				queryBuilder.andWhere('protocol.name LIKE :nameFilter', { nameFilter: `%${nameFilter}%` });
 			}
+	
+			// Apply category filter if provided
 			if (categoryFilter) {
-				userProtocols = userProtocols.filter(protocol => protocol.category === categoryFilter);
+				queryBuilder.andWhere('protocol.category = :categoryFilter', { categoryFilter });
 			}
-			const totalCount = userProtocols.length;
-			userProtocols = userProtocols.slice(offset, offset + limit);
+	
+			// Count total number of protocols without applying limit and offset
+			const totalCount = await queryBuilder.getCount();
+	
+			// Retrieve paginated user protocols
+			const user = await queryBuilder
+				.skip(offset)
+				.take(limit)
+				.getOneOrFail();
+	
+			const userProtocols: Protocol[] = user.protocols;
+	
 			return { protocols: userProtocols, count: totalCount };
 		} catch (error) {
 			console.error('Error listing user protocols:', error);
