@@ -51,11 +51,24 @@ export class UserService {
 	}
 
 	public async get(userId: number): Promise<User | null> {
-		const user = await userRepository.findOneBy({
-			id: userId,
+		const user = await userRepository.findOne({
+			where: {
+				id: userId,
+			},
+			select: { id: true, gender: true }
 		});
-		return (user) ? user : null;	
-	}
+	
+		if (!user) {
+			return null;
+		}
+		// Create a new object with only the selected fields
+		const selectedUser: Partial<User> = {
+			id: user.id,
+			gender: user.gender
+		};
+	
+		return selectedUser as User;
+	}	
 
 	public async update(userId: number,data: User): Promise<object> {
 		const user = await userRepository.findOneBy({
@@ -119,31 +132,34 @@ export class UserService {
 
 	  public async listUserTags(userId: number, offset: number, limit: number, nameFilter?: string): Promise<{ tags: Tag[], count: number }> {
 		try {
-			const queryBuilder = userRepository.createQueryBuilder('user')
-				.leftJoinAndSelect('user.tags', 'tag')
-				.where('user.id = :userId', { userId });
+			const [users] = await userRepository.findAndCount({
+				where: { id: userId },
+				relations: ['tags'],
+				take: limit,
+				skip: offset,
+			});
+	
+			if (!users || users.length === 0) {
+				throw new NoRecordFoundError('User not found');
+			}
+	
+			let userTags: Tag[] = [];
+	
+			// Iterate over each user and collect their tags
+			for (const user of users) {
+				if (user.tags) {
+					userTags.push(...user.tags);
+				}
+			}
 	
 			// Apply name filter if provided
 			if (nameFilter) {
-				queryBuilder.andWhere('tag.name LIKE :nameFilter', { nameFilter: `%${nameFilter}%` });
+				userTags = userTags.filter(tag => tag.name.includes(nameFilter));
 			}
 	
-			// Count total number of tags without applying limit and offset
-			const totalCount = await queryBuilder.getCount();
+			const totalCount = userTags.length; // Calculate the total count
 	
-			// Retrieve paginated user tags
-			const users = await queryBuilder
-				.skip(offset)
-				.take(limit)
-				.getMany();
-	
-			// Map user entities to their associated tags
-			const userTags: Tag[] = users.reduce((tags: Tag[], user) => {
-				tags.push(...user.tags);
-				return tags;
-			}, []);
-	
-			return { tags: userTags, count: totalCount };
+			return { tags: userTags, count: totalCount }; // Return both tags and the total count
 		} catch (error) {
 			console.error('Error listing user tags:', error);
 			throw error;
@@ -180,35 +196,42 @@ export class UserService {
 
 	  public async listUserProtocols(userId: number, offset: number, limit: number, nameFilter?: string, categoryFilter?: string): Promise<{ protocols: Protocol[], count: number }> {
 		try {
-			const queryBuilder = userRepository.createQueryBuilder('user')
-				.leftJoinAndSelect('user.protocols', 'protocol')
-				.where('user.id = :userId', { userId });
+			const [users] = await userRepository.findAndCount({
+				where: { id: userId },
+				relations: ['protocols'],
+				take: limit,
+				skip: offset,
+			});
+	
+			if (!users || users.length === 0) {
+				throw new NoRecordFoundError('User not found');
+			}
+	
+			let userProtocols: Protocol[] = [];
+	
+			// Iterate over each user and collect their protocols
+			for (const user of users) {
+				if (user.protocols) {
+					userProtocols.push(...user.protocols);
+				}
+			}
 	
 			// Apply name filter if provided
 			if (nameFilter) {
-				queryBuilder.andWhere('protocol.name LIKE :nameFilter', { nameFilter: `%${nameFilter}%` });
+				userProtocols = userProtocols.filter(protocol => protocol.name.includes(nameFilter));
 			}
 	
 			// Apply category filter if provided
 			if (categoryFilter) {
-				queryBuilder.andWhere('protocol.category = :categoryFilter', { categoryFilter });
+				userProtocols = userProtocols.filter(protocol => protocol.category === categoryFilter);
 			}
 	
-			// Count total number of protocols without applying limit and offset
-			const totalCount = await queryBuilder.getCount();
+			const totalCount = userProtocols.length; // Calculate the total count
 	
-			// Retrieve paginated user protocols
-			const user = await queryBuilder
-				.skip(offset)
-				.take(limit)
-				.getOneOrFail();
-	
-			const userProtocols: Protocol[] = user.protocols;
-	
-			return { protocols: userProtocols, count: totalCount };
+			return { protocols: userProtocols, count: totalCount }; // Return both protocols and the total count
 		} catch (error) {
 			console.error('Error listing user protocols:', error);
 			throw error;
 		}
-	}	
+	}
 }
