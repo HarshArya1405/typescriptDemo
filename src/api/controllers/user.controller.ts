@@ -179,7 +179,13 @@ export class UserController {
     @UseBefore(Authentication)
     @ResponseSchema(UserResponse)
     public async get(@Param('id') id: number): Promise<User | null> {
-        return userService.get(id);
+        const user = await userService.get(id);
+        
+        if (user && user.id !== undefined) {
+            return user as User;
+        } else {
+            return null;
+        }
     }
 
     @Get()
