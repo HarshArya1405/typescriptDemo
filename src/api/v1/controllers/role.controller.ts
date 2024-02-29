@@ -1,9 +1,10 @@
 // Import necessary modules and types
-import { IsNotEmpty, IsNumber, ValidateNested, IsBoolean, IsOptional } from 'class-validator';
+import { IsNotEmpty, IsNumber, ValidateNested, IsBoolean, IsOptional, isUUID } from 'class-validator';
 import { Body, Get, JsonController, Param, Post, Put } from 'routing-controllers';
 import { ResponseSchema } from 'routing-controllers-openapi';
 import { Role } from '../../models/role.model';
 import { RoleService } from '../services/role.service';
+import { BadRequestParameterError } from '../../errors';
 
 // Initialize role service
 const roleService = new RoleService();
@@ -93,7 +94,8 @@ export class RoleController {
      */
     @Put('/:id')
     @ResponseSchema(RoleResponse)
-    public async update(@Param('id') id: number, @Body() body: BaseRole): Promise<object> {
+    public async update(@Param('id') id: string, @Body() body: BaseRole): Promise<object> {
+        if (id && !isUUID(id)) throw new BadRequestParameterError(`Invalid id, UUID format expected but received ${id}`);
         const role = new Role();
         role.name = body.name;
         role.description = body.description;
