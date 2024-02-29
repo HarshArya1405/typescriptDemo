@@ -3,7 +3,8 @@ import { VideoContent, Tag, Protocol } from '../../models';
 import { JsonController, Post, Get, Put, Delete, Param, Body, QueryParams } from 'routing-controllers';
 import { ResponseSchema } from 'routing-controllers-openapi';
 import { VideoContentService } from '../services/videoContent.service';
-import { IsAlphanumeric, IsArray, IsNotEmpty, IsNumber, IsOptional, IsString } from 'class-validator';
+import { IsAlphanumeric, IsArray, IsNotEmpty, IsNumber, IsOptional, IsString, isUUID } from 'class-validator';
+import { BadRequestParameterError } from '../../errors';
 
 // Define the base video content class with common properties
 class BaseVideoContent {
@@ -101,8 +102,6 @@ export class VideoContentController {
         videoContent.userId = creatorId;
         videoContent.description = body.description;
         videoContent.thumbnail = body.thumbnail;
-        videoContent.upVote = body.upVOte;
-        videoContent.downVote = body.downVote;
         videoContent.personalNote = body.personalNote;
         videoContent.tags = body.tags;
         videoContent.protocols = body.protocols;
@@ -129,6 +128,7 @@ export class VideoContentController {
     @Param('id') id: number
     ): Promise<VideoContent> {
     try {
+      if (id && !isUUID(id)) throw new BadRequestParameterError(`Invalid id, UUID format expected but received ${id}`);
       const result = await this.videoContentService.get(creatorId,id);
       return result;
     } catch (error) {
@@ -145,6 +145,7 @@ export class VideoContentController {
     @Body() newData: BaseVideoContent 
     ): Promise<VideoContent> {
     try {
+      if (id && !isUUID(id)) throw new BadRequestParameterError(`Invalid id, UUID format expected but received ${id}`);
       const result = await this.videoContentService.update(creatorId,id, newData);
       return result;
     } catch (error) {
@@ -160,6 +161,7 @@ export class VideoContentController {
     @Param('creatorId') creatorId: number
     ): Promise<{ success: boolean } | { error: string }> {
     try {
+      if (id && !isUUID(id)) throw new BadRequestParameterError(`Invalid id, UUID format expected but received ${id}`);
       const result = await this.videoContentService.delete(creatorId,id);
       return result;
     } catch (error) {
