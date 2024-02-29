@@ -1,9 +1,10 @@
 // Import necessary modules and types
-import { IsNotEmpty, IsArray, IsNumber, IsNumberString, IsPositive, IsAlpha, IsOptional, IsAlphanumeric, IsEmail, IsString, IsEnum } from 'class-validator';
+import { IsNotEmpty, IsArray, IsNumber, IsNumberString, IsPositive, IsAlpha, IsOptional, IsAlphanumeric, IsEmail, IsString, IsEnum, isUUID } from 'class-validator';
 import { Body, Delete, Get, JsonController, Param, Post, Put, QueryParams } from 'routing-controllers';
 import { ResponseSchema } from 'routing-controllers-openapi';
 import { User, OnBoardingFunnel } from '../../models';
 import { UserService } from '../services/user.service';
+import { BadRequestParameterError } from '../../errors';
 
 // Create an instance of the user service
 const userService = new UserService();
@@ -139,7 +140,8 @@ export class UserController {
     // Get a user by ID
     @Get('/:id')
     @ResponseSchema(UserResponse)
-    public async get(@Param('id') id: number): Promise<object | null> {
+    public async get(@Param('id') id: string): Promise<object | null> {
+        if (id && !isUUID(id)) throw new BadRequestParameterError(`Invalid id, UUID format expected but received ${id}`);
         return userService.get(id);
     }
 
@@ -153,13 +155,15 @@ export class UserController {
     // Update a user by ID
     @Put('/:id')
     @ResponseSchema(UserResponse)
-    public async update(@Param('id') id: number, @Body() body: Partial<User>): Promise<object> {
+    public async update(@Param('id') id: string, @Body() body: Partial<User>): Promise<object> {
+        if (id && !isUUID(id)) throw new BadRequestParameterError(`Invalid id, UUID format expected but received ${id}`);
         return userService.update(id, body);
     }
 
     // Delete a user by ID
     @Delete('/:id')
-    public async delete(@Param('id') id: number): Promise<object> {
+    public async delete(@Param('id') id: string): Promise<object> {
+        if (id && !isUUID(id)) throw new BadRequestParameterError(`Invalid id, UUID format expected but received ${id}`);
         return userService.delete(id);
     }
 
@@ -167,41 +171,47 @@ export class UserController {
 
     // Save tags for a user
     @Post('/:userId/tags')
-    public async saveTags(@Param('userId') userId: number, @Body() body: SaveTagsBody): Promise<User> {
+    public async saveTags(@Param('userId') userId: string, @Body() body: SaveTagsBody): Promise<User> {
+        if (userId && !isUUID(userId)) throw new BadRequestParameterError(`Invalid id, UUID format expected but received ${userId}`);
         const { tagIds } = body;
         return userService.saveTags(userId, tagIds);
     }
 
     // Update tags for a user
     @Put('/:userId/tags')
-    public async updateTags(@Param('userId') userId: number, @Body() body: SaveTagsBody): Promise<User> {
+    public async updateTags(@Param('userId') userId: string, @Body() body: SaveTagsBody): Promise<User> {
+        if (userId && !isUUID(userId)) throw new BadRequestParameterError(`Invalid id, UUID format expected but received ${userId}`);
         const { tagIds } = body;
         return userService.updateTags(userId, tagIds);
     }
 
     // List tags for a user
     @Get('/:userId/tags')
-    public async listTags(@Param('userId') userId: number): Promise<User> {
+    public async listTags(@Param('userId') userId: string): Promise<User> {
+        if (userId && !isUUID(userId)) throw new BadRequestParameterError(`Invalid id, UUID format expected but received ${userId}`);
         return await userService.listTags(userId);
     }
 
     // Save protocols for a user
     @Post('/:userId/protocols')
-    public async saveUserProtocols(@Param('userId') userId: number, @Body() body: SaveProtocolsBody): Promise<User> {
+    public async saveUserProtocols(@Param('userId') userId: string, @Body() body: SaveProtocolsBody): Promise<User> {
+        if (userId && !isUUID(userId)) throw new BadRequestParameterError(`Invalid id, UUID format expected but received ${userId}`);
         const { protocolIds } = body;
         return userService.saveProtocols(userId, protocolIds);
     }
 
     // Update protocols for a user
     @Put('/:userId/protocols')
-    public async updateProtocols(@Param('userId') userId: number, @Body() body: SaveProtocolsBody): Promise<User> {
+    public async updateProtocols(@Param('userId') userId: string, @Body() body: SaveProtocolsBody): Promise<User> {
+        if (userId && !isUUID(userId)) throw new BadRequestParameterError(`Invalid id, UUID format expected but received ${userId}`);
         const { protocolIds } = body;
         return userService.updateProtocols(userId, protocolIds);
     }
 
     // List protocols for a user
     @Get('/:userId/protocols')
-    public async listProtocols(@Param('userId') userId: number): Promise<User> {
+    public async listProtocols(@Param('userId') userId: string): Promise<User> {
+        if (userId && !isUUID(userId)) throw new BadRequestParameterError(`Invalid id, UUID format expected but received ${userId}`);
         return await userService.listProtocols(userId);
     }
 
@@ -209,13 +219,15 @@ export class UserController {
 
     // Set onboard funnel for a user
     @Post('/:userId/onboardFunnel')
-    public async setOnboardFunnel(@Param('userId') userId: number, @Body() body: OnboardFunnelBody): Promise<OnBoardingFunnel | undefined> {
+    public async setOnboardFunnel(@Param('userId') userId: string, @Body() body: OnboardFunnelBody): Promise<OnBoardingFunnel | undefined> {
+        if (userId && !isUUID(userId)) throw new BadRequestParameterError(`Invalid id, UUID format expected but received ${userId}`);
         return userService.setOnboardFunnel(userId, body.stage, body.status);
     }
 
     // Get onboard funnel for a user
     @Get('/:userId/onboardFunnel')
-    public async getOnboardFunnel(@Param('userId') userId: number): Promise<object> {
+    public async getOnboardFunnel(@Param('userId') userId: string): Promise<object> {
+        if (userId && !isUUID(userId)) throw new BadRequestParameterError(`Invalid id, UUID format expected but received ${userId}`);
         return userService.getOnboardFunnel(userId);
     }
 }
