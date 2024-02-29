@@ -53,7 +53,7 @@ export class UserService {
 	}
 
 	// Method to retrieve a user by ID
-	public async get(userId: number): Promise<object | null> {
+	public async get(userId: string): Promise<object | null> {
 		const user = await userRepository.findOne({
 			where: { id: userId },
 		});
@@ -66,7 +66,7 @@ export class UserService {
 	}
 
 	// Method to update an existing user
-	public async update(userId: number, data: Partial<User>): Promise<object> {
+	public async update(userId: string, data: Partial<User>): Promise<object> {
 		const user = await userRepository.findOneBy({
 			id: userId,
 		});
@@ -91,7 +91,7 @@ export class UserService {
 	}
 
 	// Method to delete a user by ID
-	public async delete(userId: number): Promise<object> {
+	public async delete(userId: string): Promise<object> {
 		const user = await userRepository.findOneBy({
 			id: userId,
 		});
@@ -103,7 +103,7 @@ export class UserService {
 	}
 
 	// Method to save tags for a user
-	public async saveTags(userId: number, tagIds: number[]): Promise<User> {
+	public async saveTags(userId: string, tagIds: number[]): Promise<User> {
 		const user = await userRepository.findOne({ where: { id: userId }, relations: ['tags'] });
 		if (!user) {
 			throw new NoRecordFoundError(MESSAGES.USER_NOT_EXIST);
@@ -115,7 +115,7 @@ export class UserService {
 	}
 
 	// Method to update tags for a user
-	public async updateTags(userId: number, tagIds: number[]): Promise<User> {
+	public async updateTags(userId: string, tagIds: number[]): Promise<User> {
 		const user = await userRepository.findOne({ where: { id: userId }, relations: ['tags'] });
 		if (!user) {
 			throw new NoRecordFoundError(MESSAGES.USER_NOT_EXIST);
@@ -127,7 +127,7 @@ export class UserService {
 	}
 
 	// Method to list tags for a user
-	public async listTags(userId: number): Promise<User> {
+	public async listTags(userId: string): Promise<User> {
 		const user = await userRepository.findOne({ where: { id: userId }, relations: ['tags'] });
 		if (!user) {
 			throw new NoRecordFoundError(MESSAGES.USER_NOT_EXIST);
@@ -136,7 +136,7 @@ export class UserService {
 	}
 
 	// Method to save protocols for a user
-	public async saveProtocols(userId: number, protocolIds: number[]): Promise<User> {
+	public async saveProtocols(userId: string, protocolIds: number[]): Promise<User> {
 		const user = await userRepository.findOne({ where: { id: userId }, relations: ['protocols'] });
 		if (!user) {
 			throw new NoRecordFoundError('User not found');
@@ -148,7 +148,7 @@ export class UserService {
 	}
 
 	// Method to update protocols for a user
-	public async updateProtocols(userId: number, protocolIds: number[]): Promise<User> {
+	public async updateProtocols(userId: string, protocolIds: number[]): Promise<User> {
 		const user = await userRepository.findOne({ where: { id: userId }, relations: ['protocols'] });
 		if (!user) {
 			throw new NoRecordFoundError('User not found');
@@ -160,7 +160,7 @@ export class UserService {
 	}
 
 	// Method to list protocols for a user
-	public async listProtocols(userId: number): Promise<User> {
+	public async listProtocols(userId: string): Promise<User> {
 		const user = await userRepository.findOne({ where: { id: userId }, relations: ['protocols'] });
 		if (!user) {
 			throw new NoRecordFoundError(MESSAGES.USER_NOT_EXIST);
@@ -169,7 +169,7 @@ export class UserService {
 	}
 
 	// Method to set an onboarding funnel stage for a user
-	public async setOnboardFunnel(userId: number, stage: string, status: string): Promise<OnBoardingFunnel | undefined> {
+	public async setOnboardFunnel(userId: string, stage: string, status: string): Promise<OnBoardingFunnel | undefined> {
 		const user = await this.get(userId);
 		if (user) {
 			let onboardingFunnel = await onBoardingFunnelRepository.findOne({
@@ -188,7 +188,7 @@ export class UserService {
 	}
 
 	// Method to get onboarding funnels for a user
-	public async getOnboardFunnel(userId: number): Promise<object> {
+	public async getOnboardFunnel(userId: string): Promise<object> {
 		const user = await userRepository.findOne({
 			where: { id: userId },
 		});
