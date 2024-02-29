@@ -1,10 +1,11 @@
 import { Entity, PrimaryGeneratedColumn, Column, OneToMany, CreateDateColumn, UpdateDateColumn, BeforeUpdate, ManyToMany, JoinTable } from 'typeorm';
-import { Tag,Protocol,OnBoardingFunnel } from './';
+import { Tag,Protocol,OnBoardingFunnel,Text } from './';
+import { v4 as uuidv4 } from 'uuid';
 
 @Entity()
 export class User {
-  @PrimaryGeneratedColumn()
-  id: number = 0;
+  @PrimaryGeneratedColumn('uuid')
+  id: string = uuidv4();
 
   @Column({ nullable: true })
   fullName: string = '';
@@ -38,6 +39,9 @@ export class User {
 
   @OneToMany(() => OnBoardingFunnel, onBoardingFunnel => onBoardingFunnel.user)
   onBoardingFunnels!: OnBoardingFunnel[];
+
+  @OneToMany(() => Text, text => text.user)
+  texts!: Text[];
 
   @ManyToMany(() => Tag)
   @JoinTable()
