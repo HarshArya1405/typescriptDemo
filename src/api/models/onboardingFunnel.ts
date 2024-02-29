@@ -1,6 +1,7 @@
 // Import necessary modules and types
 import { Entity, PrimaryGeneratedColumn, Column, ManyToOne, CreateDateColumn, UpdateDateColumn, BeforeUpdate } from 'typeorm';
 import { User } from './user.model';
+import { v4 as uuidv4 } from 'uuid';
 
 // Define enum for onboarding status
 enum OnBoardingStatus {
@@ -11,11 +12,11 @@ enum OnBoardingStatus {
 // Entity for OnBoardingFunnel
 @Entity()
 export class OnBoardingFunnel {
-  @PrimaryGeneratedColumn()
-  id: number = 0;
+  @PrimaryGeneratedColumn('uuid')
+  id: string = uuidv4();
 
   @Column({ nullable: false })
-  userId: number = 0;
+  userId: string = '';
   
   @Column({ nullable: false })
   stage: string = '';
