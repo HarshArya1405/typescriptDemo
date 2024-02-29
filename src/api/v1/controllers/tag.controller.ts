@@ -3,7 +3,8 @@ import { Tag } from '../../models';
 import { JsonController, Post, Get, Put, Delete, Param, Body, QueryParams } from 'routing-controllers';
 import { ResponseSchema } from 'routing-controllers-openapi';
 import { TagService } from '../services/tag.service';
-import { IsNotEmpty, IsNumber, IsOptional } from 'class-validator';
+import { IsNotEmpty, IsNumber, IsOptional, isUUID } from 'class-validator';
+import { BadRequestParameterError } from '../../errors';
 
 // Base tag class with common properties
 class BaseTag {
@@ -69,10 +70,11 @@ export class TagController {
    */
   @Put('/:id')
   public async update(
-    @Param('id') id: number,
+    @Param('id') id: string,
     @Body() newData: BaseTag 
     ): Promise<{ success: boolean } | { error: string }> {
     try {
+      if (id && !isUUID(id)) throw new BadRequestParameterError(`Invalid id, UUID format expected but received ${id}`);
       const result = await this.tagService.update(id, newData);
       return result;
     } catch (error) {
@@ -87,8 +89,9 @@ export class TagController {
    * @returns Success message or error
    */
   @Delete('/:id')
-  public async delete(@Param('id') id: number): Promise<{ success: boolean } | { error: string }> {
+  public async delete(@Param('id') id: string): Promise<{ success: boolean } | { error: string }> {
     try {
+      if (id && !isUUID(id)) throw new BadRequestParameterError(`Invalid id, UUID format expected but received ${id}`);
       const result = await this.tagService.delete(id);
       return result;
     } catch (error) {
