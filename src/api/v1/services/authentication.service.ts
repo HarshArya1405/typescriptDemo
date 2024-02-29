@@ -4,6 +4,7 @@ import { UserService } from './user.service';
 import { User } from '../../models/user.model';
 import { AppDataSource } from '../../../loaders/typeormLoader';
 import axios from 'axios';
+import { v4 as uuidv4 } from 'uuid';
 
 // Get repository and instantiate UserService
 const userRepository = AppDataSource.getRepository(User);
@@ -31,7 +32,7 @@ export class AuthenticationService {
 
 	// Method to check user existence and create new if not found
 	public async checkUser(data: UserData): Promise<object | null> {
-		let userId: number = 0;
+		let userId: string = uuidv4();
 		let userExist: boolean = false;
 
 		// Check user existence by authOkey
@@ -42,7 +43,7 @@ export class AuthenticationService {
 			});
 			if (userauthkeyExist) {
 				userExist = true;
-				userId = userauthkeyExist.id;
+				userId = String(userauthkeyExist.id);
 				await this.linkUser(userauthkeyExist.authOkey, data.sub);
 			}
 		}
@@ -54,7 +55,7 @@ export class AuthenticationService {
 			});
 			if (userEmailExist) {
 				userExist = true;
-				userId = userEmailExist.id;
+				userId = String(userEmailExist.id);
 				await this.linkUser(userEmailExist.authOkey, data.sub);
 			}
 		}
@@ -72,7 +73,7 @@ export class AuthenticationService {
 			newUser.biography = data.biography;
 			newUser.role = data.role;
 			await userService.create(newUser);
-			userId = newUser.id;
+			userId = String(newUser.id);
 		}
 
 		// Get and return user data
