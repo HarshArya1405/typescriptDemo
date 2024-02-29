@@ -13,7 +13,8 @@ export default class Server {
   private config(app: Application): void {
     // Cors options for handling Cross-Origin Resource Sharing (CORS)
     const corsOptions: CorsOptions = {
-      origin: ENV.whitelistUrls // Whitelist URLs for CORS
+      origin: ENV.whitelistUrls, // Whitelist URLs for CORS,
+      methods: ENV.methods
     };
     app.use(cors(corsOptions)); // Using CORS middleware
     app.use(express.json()); // Parsing incoming JSON requests

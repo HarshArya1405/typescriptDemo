@@ -18,7 +18,7 @@ export class Role {
   createdAt: number = Date.now();
 
   @UpdateDateColumn({ type: 'bigint', nullable: false, default: () => 'EXTRACT(EPOCH FROM NOW()) * 1000' })
-  updatedAt: number = Date.now();
+  updatedAt: number = Date.now(); 
 
   @BeforeUpdate()
   updateTimestamp() {

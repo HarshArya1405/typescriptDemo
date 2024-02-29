@@ -1,13 +1,22 @@
 import ERRORS from './errors';
+import { HttpError } from 'routing-controllers';
 
-class ConflictError extends Error {
-    status: number;
-
-    constructor(message = ERRORS.CONFLICT_ERROR.message) {
-        super(message);
-        this.name = ERRORS.CONFLICT_ERROR.name;
-        this.status = ERRORS.CONFLICT_ERROR.status;
+class ConflictError extends HttpError {
+    public operationName: string;
+  
+    constructor(operationName?: string) {
+      super(ERRORS.CONFLICT_ERROR.status);
+      Object.setPrototypeOf(this, ConflictError.prototype);
+      this.operationName = operationName ?? ERRORS.CONFLICT_ERROR.message;
+    }
+  
+    toJSON() {
+      return {
+        name:ERRORS.CONFLICT_ERROR.name,
+        status: this.httpCode,
+        message: this.operationName,
+      };
     }
 }
-
 export default ConflictError;
+

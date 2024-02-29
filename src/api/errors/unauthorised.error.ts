@@ -1,12 +1,22 @@
+import { HttpError } from 'routing-controllers';
 import ERRORS from './errors';
 
-class UnauthorisedError extends Error {
-    status: number;
-    constructor(message = ERRORS.UNAUTHORISED_ERROR.message) {
-        super(message);
-        this.name = ERRORS.UNAUTHORISED_ERROR.name;
-        this.status = ERRORS.UNAUTHORISED_ERROR.status;
+class UnauthorisedError extends HttpError {
+    public operationName: string;
+  
+    constructor(operationName?: string) {
+      super(ERRORS.UNAUTHORISED_ERROR.status);
+      Object.setPrototypeOf(this, UnauthorisedError.prototype);
+      this.operationName = operationName ?? ERRORS.UNAUTHORISED_ERROR.message;
+    }
+  
+    toJSON() {
+      return {
+        name:ERRORS.UNAUTHORISED_ERROR.name,
+        status: this.httpCode,
+        message: this.operationName,
+      };
     }
 }
-
 export default UnauthorisedError;
+

@@ -4,5 +4,5 @@ import logger from '../util/logger';
 
 export const baseLoader: MicroframeworkLoader = () => {
   logger.info('BaseLoader');
-  // other configs
+  // other configs to be load in index file
 };

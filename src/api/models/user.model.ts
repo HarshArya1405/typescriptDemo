@@ -1,25 +1,24 @@
-import { Entity, PrimaryGeneratedColumn, Column, CreateDateColumn, UpdateDateColumn, BeforeUpdate, ManyToMany, JoinTable } from 'typeorm';
-import { Tag } from './tag.model';
-import { Protocol } from './protocol.model';
+import { Entity, PrimaryGeneratedColumn, Column, OneToMany, CreateDateColumn, UpdateDateColumn, BeforeUpdate, ManyToMany, JoinTable } from 'typeorm';
+import { Tag,Protocol,OnBoardingFunnel } from './';
 
 @Entity()
 export class User {
   @PrimaryGeneratedColumn()
   id: number = 0;
 
-  @Column({ nullable: false })
+  @Column({ nullable: true })
   fullName: string = '';
   
-  @Column({ nullable: false })
+  @Column({ nullable: true })
   userName: string = '';
   
-  @Column({ nullable: false })
+  @Column({ nullable: true })
   email: string = '';
 
-  @Column({ nullable: false })
+  @Column({ nullable: true })
   profilePicture: string = '';
   
-  @Column({ nullable: false })
+  @Column({ nullable: true })
   phone: string = '';
 
   @Column({ nullable: true })
@@ -31,25 +30,28 @@ export class User {
   @Column({ nullable: false })
   role: string = '';
 
-  @Column({ nullable: false })
+  @Column({ nullable: true })
   gender: string = '';
 
   @Column({ nullable: false })
   authOkey: string = '';
 
+  @OneToMany(() => OnBoardingFunnel, onBoardingFunnel => onBoardingFunnel.user)
+  onBoardingFunnels!: OnBoardingFunnel[];
+
+  @ManyToMany(() => Tag)
+  @JoinTable()
+  tags!: Tag[];
+
+  @ManyToMany(() => Protocol)
+  @JoinTable()
+  protocols!: Protocol[];
+
   @CreateDateColumn({ type: 'bigint', default: () => 'EXTRACT(EPOCH FROM NOW()) * 1000' })
   createdAt: number = Date.now();
 
   @UpdateDateColumn({ type: 'bigint', nullable: false, default: () => 'EXTRACT(EPOCH FROM NOW()) * 1000' })
-  updatedAt: number = Date.now();  
-
-  @ManyToMany(() => Tag)
-      @JoinTable()
-      tags!: Tag[];
-  
-      @ManyToMany(() => Protocol)
-      @JoinTable()
-      protocols!: Protocol[];
+  updatedAt: number = Date.now(); 
 
   @BeforeUpdate()
   updateTimestamp() {

@@ -1,27 +1,24 @@
 import { Entity, PrimaryGeneratedColumn, Column, CreateDateColumn, UpdateDateColumn, BeforeUpdate } from 'typeorm';
 
 @Entity()
-export class Task {
+export class User {
   @PrimaryGeneratedColumn()
   id: number = 0;
 
-  @Column({ nullable: true })
-  title: string = '';
-
-  @Column({ nullable: true })
-  description: string = '';
+  @Column({ nullable: false })
+  userId: string = '';
   
-  @Column({ nullable: true })
-  address: string = '';
+  @Column({ nullable: false })
+  platform: string = '';
+  
+  @Column({ nullable: false })
+  url: string = '';
 
   @CreateDateColumn({ type: 'bigint', default: () => 'EXTRACT(EPOCH FROM NOW()) * 1000' })
   createdAt: number = Date.now();
 
   @UpdateDateColumn({ type: 'bigint', nullable: false, default: () => 'EXTRACT(EPOCH FROM NOW()) * 1000' })
-  updatedAt: number = Date.now();
-
-  @Column({ nullable: true })
-  published: boolean = false;
+  updatedAt: number = Date.now(); 
 
   @BeforeUpdate()
   updateTimestamp() {
