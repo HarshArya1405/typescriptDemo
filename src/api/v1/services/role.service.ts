@@ -49,7 +49,7 @@ export class RoleService {
 	}
 
 	// Method to update a role
-	public async update(roleId: number, data: Role): Promise<object> {
+	public async update(roleId: string, data: Role): Promise<object> {
 		const role = await roleRepository.findOneBy({ id: roleId });
 		if (role) {
 			const roleObj = { ...role, ...data };
