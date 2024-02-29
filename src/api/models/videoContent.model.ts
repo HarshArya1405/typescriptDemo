@@ -1,10 +1,11 @@
 import { Entity, PrimaryGeneratedColumn, Column , CreateDateColumn, UpdateDateColumn, BeforeUpdate, ManyToMany, JoinTable } from 'typeorm';
 import {Tag,Protocol} from './';
+import { v4 as uuidv4 } from 'uuid';
 
 @Entity()
 export class VideoContent {
-  @PrimaryGeneratedColumn()
-  id: number = 0;
+  @PrimaryGeneratedColumn('uuid')
+  id: string = uuidv4();
 
   @Column({ nullable: false })
   userId: number = 0;
@@ -20,12 +21,6 @@ export class VideoContent {
 
   @Column({ nullable: false })
   thumbnail: string = '';
-
-  @Column({ nullable: false ,default:0})
-  upVote: number = 0;
-
-  @Column({ nullable: false ,default:0})
-  downVote: number = 0;
 
   @Column({ nullable: false })
   personalNote: string = '';
