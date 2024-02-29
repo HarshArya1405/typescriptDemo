@@ -16,16 +16,17 @@ export class TagService {
     try {
       const response = await axios.get('https://api.coingecko.com/api/v3/coins/categories');
       const tagsData = response.data;
+      const tags: Tag[] = [];
 
-      for (const tagData of tagsData) {
-        const tagExist = await tagRepository.findOneBy({ tagId: tagData.id });
-        if (!tagExist) {
+      await tagRepository.manager.transaction(async transactionalEntityManager => {
+        for (const tagData of tagsData) {
           const tag = new Tag();
           tag.tagId = tagData.id;
           tag.name = tagData.name;
-          await tagRepository.save(tag);
+          await transactionalEntityManager.save(tag);
+          tags.push(tag);
         }
-      }
+      });
 
       return { success: true };
     } catch (error) {
@@ -78,35 +79,39 @@ export class TagService {
   }
 
   // Method to update an existing tag
-  public async update(tagId: number, newData: Partial<Tag>): Promise<{ success: boolean } | { error: string }> {
+  public async update(tagId: string, newData: Partial<Tag>): Promise<{ success: boolean } | { error: string }> {
     try {
-      const tag = await tagRepository.findOne({ where: { id: tagId } });
-      if (tag) {
+      const result = await tagRepository.manager.transaction(async transactionalEntityManager => {
+        const tag = await transactionalEntityManager.findOne(Tag, { where: { id: tagId } });
+        if (!tag) {
+          return { error: '404' };
+        }
         Object.assign(tag, newData);
-        await tagRepository.save(tag);
+        await transactionalEntityManager.save(tag);
         return { success: true };
-      } else {
-        return { error: '404' };
-      }
+      });
+      return result;
     } catch (error) {
       console.error('Error updating tag:', error);
-      throw error;
+      return { error: '500' };
     }
   }
 
   // Method to delete a tag by ID
-  public async delete(tagId: number): Promise<{ success: boolean } | { error: string }> {
+  public async delete(tagId: string): Promise<{ success: boolean } | { error: string }> {
     try {
-      const tag = await tagRepository.findOne({ where: { id: tagId } });
-      if (tag) {
-        await tagRepository.remove(tag);
+      const result = await tagRepository.manager.transaction(async transactionalEntityManager => {
+        const tag = await transactionalEntityManager.findOne(Tag, { where: { id: tagId } });
+        if (!tag) {
+          return { error: '404' };
+        }
+        await transactionalEntityManager.remove(tag);
         return { success: true };
-      } else {
-        return { error: '404' };
-      }
+      });
+      return result;
     } catch (error) {
       console.error('Error deleting tag:', error);
-      throw error;
+      return { error: '500' };
     }
   }
 }
