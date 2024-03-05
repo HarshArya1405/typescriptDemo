@@ -208,6 +208,12 @@ export class UserService {
 
 	// Method to create or update a user's social handle
 	public async createOrUpdateSocialHandle(userId: string, platform: string, url: string): Promise<SocialHandle> {
+		const user = await userRepository.findOne({
+			where: { id: userId },
+		});
+		if (!user) {
+			throw new NoRecordFoundError(MESSAGES.USER_NOT_EXIST);
+		}
 		let socialHandle = await socialHandleRepository.findOne({ where: { userId, platform } });
 
 		if (!socialHandle) {
@@ -221,8 +227,6 @@ export class UserService {
 
 		return socialHandle;
 	}
-
-
 	// Method to retrieve a user's social handles
 	public async getSocialHandles(userId: string): Promise<SocialHandle[]> {
 		return socialHandleRepository.find({ where: { userId } });
