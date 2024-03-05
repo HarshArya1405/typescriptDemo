@@ -1,5 +1,5 @@
 import { Entity, PrimaryGeneratedColumn, Column, OneToMany, CreateDateColumn, UpdateDateColumn, BeforeUpdate, ManyToMany, JoinTable } from 'typeorm';
-import { Tag,Protocol,OnBoardingFunnel,Text, SocialHandle } from './';
+import { Tag,Protocol,OnBoardingFunnel,Text, SocialHandle, Wallet } from './';
 import { v4 as uuidv4 } from 'uuid';
 
 @Entity()
@@ -53,6 +53,9 @@ export class User {
 
   @OneToMany(() => SocialHandle, socialHandle => socialHandle.user)
   socialHandles!: SocialHandle[];
+
+  @OneToMany(() => Wallet, wallet => wallet.user)
+  wallets!: Wallet[];
 
   @CreateDateColumn({ type: 'bigint', default: () => 'EXTRACT(EPOCH FROM NOW()) * 1000' })
   createdAt: number = Date.now();
