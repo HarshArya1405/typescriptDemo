@@ -7,8 +7,8 @@ export class VideoContent {
   @PrimaryGeneratedColumn('uuid')
   id: string = uuidv4();
 
-  @Column({ nullable: false })
-  userId: number = 0;
+  @Column({ nullable: true })
+  userId: string = '';
   
   @Column({ nullable: false })
   url: string = '';
@@ -25,6 +25,14 @@ export class VideoContent {
   @Column({ nullable: false })
   personalNote: string = '';
 
+  @ManyToMany(() => Tag, { cascade: true })
+  @JoinTable()
+  tags!: Tag[];
+
+  @ManyToMany(() => Protocol, { cascade: true })
+  @JoinTable()
+  protocols!: Protocol[];
+
   @CreateDateColumn({ type: 'bigint', default: () => 'EXTRACT(EPOCH FROM NOW()) * 1000' })
   createdAt: number = Date.now();
 
@@ -35,12 +43,4 @@ export class VideoContent {
   updateTimestamp() {
     this.updatedAt = Date.now();
   }
-
-  @ManyToMany(() => Tag)
-  @JoinTable()
-  tags!: Tag[];
-
-  @ManyToMany(() => Protocol)
-  @JoinTable()
-  protocols!: Protocol[];
 }
