@@ -5,3 +5,5 @@ export { Protocol } from './protocol.model';
 export { OnBoardingFunnel } from './onboardingFunnel';
 export { VideoContent } from './videoContent.model';
 export { Text } from './text.model';
+export { Vote } from './vote.model';
+export { SocialHandle } from './socialHandle.model';
