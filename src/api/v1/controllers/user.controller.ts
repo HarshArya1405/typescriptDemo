@@ -2,7 +2,7 @@
 import { IsNotEmpty, IsArray, IsNumber, IsNumberString, IsPositive, IsAlpha, IsOptional, IsAlphanumeric, IsEmail, IsString, IsEnum, isUUID } from 'class-validator';
 import { Body, Delete, Get, JsonController, Param, Post, Put, QueryParams } from 'routing-controllers';
 import { ResponseSchema } from 'routing-controllers-openapi';
-import { User, OnBoardingFunnel } from '../../models';
+import { User, OnBoardingFunnel, SocialHandle } from '../../models';
 import { UserService } from '../services/user.service';
 import { BadRequestParameterError } from '../../errors';
 
@@ -111,6 +111,15 @@ class OnboardFunnelBody {
     @IsAlpha()
     @IsEnum(Status, { message: 'Invalid status. Must be one of: skipped, completed' })
     public status!: string;
+}
+
+class SocialHandleBody {
+    @IsNotEmpty()
+    @IsString()
+    public platform!: string;
+
+    @IsString()
+    public url!: string;
 }
 
 // Controller for user endpoints
@@ -229,5 +238,20 @@ export class UserController {
     public async getOnboardFunnel(@Param('userId') userId: string): Promise<object> {
         if (userId && !isUUID(userId)) throw new BadRequestParameterError(`Invalid id, UUID format expected but received ${userId}`);
         return userService.getOnboardFunnel(userId);
+    }
+
+    // Create or update a user's social handle
+    @Post('/:userId/SocialHandle')
+    public async createOrUpdateSocialHandle(@Param('userId') userId: string, @Body() body: SocialHandleBody): Promise<SocialHandle> {
+        if (userId && !isUUID(userId)) throw new BadRequestParameterError(`Invalid id, UUID format expected but received ${userId}`);
+        const { url, platform } = body;
+        return userService.createOrUpdateSocialHandle(userId, platform, url);
+    }
+
+    // Get a user's social handles
+    @Get('/:userId/SocialHandle')
+    public async getSocialHandles(@Param('userId') userId: string): Promise<SocialHandle[]> {
+        if (userId && !isUUID(userId)) throw new BadRequestParameterError(`Invalid id, UUID format expected but received ${userId}`);
+        return userService.getSocialHandles(userId);
     }
 }
