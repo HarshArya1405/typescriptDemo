@@ -1,6 +1,8 @@
-import { Entity, PrimaryGeneratedColumn, Column, CreateDateColumn, UpdateDateColumn, BeforeUpdate, ManyToOne } from 'typeorm';
+import { Entity, PrimaryGeneratedColumn, Column, CreateDateColumn, UpdateDateColumn, BeforeUpdate, ManyToOne, JoinTable, ManyToMany } from 'typeorm';
 import { User } from './user.model';
 import { v4 as uuidv4 } from 'uuid';
+import { Protocol } from './protocol.model';
+import { Tag } from './tag.model';
 
 @Entity()
 export class Text {
@@ -14,13 +16,16 @@ export class Text {
   content: string = '';
 
   @Column({ nullable: false })
-  url: string = '';
+  text: string = '';
 
   @Column({ nullable: false })
   caption: string = '';
 
   @Column({ nullable: false })
   description: string = '';
+
+  @Column({ nullable: false })
+  meta_information: string = '';
 
   @CreateDateColumn({ type: 'bigint', default: () => 'EXTRACT(EPOCH FROM NOW()) * 1000' })
   createdAt: number = Date.now();
@@ -35,4 +40,13 @@ export class Text {
 
   @ManyToOne(() => User, user => user.texts)
   user!: User;
+
+  @ManyToMany(() => Tag)
+  @JoinTable()
+  tags!: Tag[];
+
+  @ManyToMany(() => Protocol)
+  @JoinTable()
+  protocols!: Protocol[];
+  
 }
