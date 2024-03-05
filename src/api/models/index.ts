@@ -7,3 +7,4 @@ export { VideoContent } from './videoContent.model';
 export { Text } from './text.model';
 export { Vote } from './vote.model';
 export { SocialHandle } from './socialHandle.model';
+export { Wallet } from './wallet.model';
