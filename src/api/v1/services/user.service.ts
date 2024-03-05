@@ -1,5 +1,5 @@
 import { Service } from 'typedi';
-import { User, Protocol, Tag, OnBoardingFunnel } from '../../models';
+import { User, Protocol, Tag, OnBoardingFunnel, SocialHandle } from '../../models';
 import { AppDataSource } from '../../../loaders/typeormLoader';
 import { DuplicateRecordFoundError, NoRecordFoundError } from '../../errors';
 import { MESSAGES } from '../../constants/messages';
@@ -10,6 +10,7 @@ const tagRepository = AppDataSource.getRepository(Tag);
 const protocolRepository = AppDataSource.getRepository(Protocol);
 const userRepository = AppDataSource.getRepository(User);
 const onBoardingFunnelRepository = AppDataSource.getRepository(OnBoardingFunnel);
+const socialHandleRepository = AppDataSource.getRepository(SocialHandle);
 
 // Service class for User
 @Service()
@@ -203,5 +204,27 @@ export class UserService {
 			}
 		}
 		return onBoardingFunnel;
+	}
+
+	// Method to create or update a user's social handle
+	public async createOrUpdateSocialHandle(userId: string, platform: string, url: string): Promise<SocialHandle> {
+		let socialHandle = await socialHandleRepository.findOne({ where: { userId, platform } });
+
+		if (!socialHandle) {
+			socialHandle = new SocialHandle();
+			socialHandle.userId = userId;
+			socialHandle.platform = platform;
+		}
+
+		socialHandle.url = url;
+		await socialHandleRepository.save(socialHandle);
+
+		return socialHandle;
+	}
+
+
+	// Method to retrieve a user's social handles
+	public async getSocialHandles(userId: string): Promise<SocialHandle[]> {
+		return socialHandleRepository.find({ where: { userId } });
 	}
 }
