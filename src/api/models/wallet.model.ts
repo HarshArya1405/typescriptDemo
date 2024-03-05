@@ -1,8 +1,9 @@
-import { Entity, PrimaryGeneratedColumn, Column, CreateDateColumn, UpdateDateColumn, BeforeUpdate } from 'typeorm';
+import { Entity, PrimaryGeneratedColumn, Column, CreateDateColumn, UpdateDateColumn, BeforeUpdate, ManyToOne } from 'typeorm';
 import { v4 as uuidv4 } from 'uuid';
+import { User } from './';
 
 @Entity()
-export class User {
+export class Wallet {
   @PrimaryGeneratedColumn('uuid')
   id: string = uuidv4();
 
@@ -10,13 +11,13 @@ export class User {
   userId: string = '';
   
   @Column({ nullable: false })
-  walletName: string = '';
+  name: string = '';
   
   @Column({ nullable: false })
-  url: string = '';
+  address: string = '';
 
-  @Column({ nullable: false })
-  balance: string = '';
+  @ManyToOne(() => User, user => user.wallets)
+  user!: User; 
 
   @CreateDateColumn({ type: 'bigint', default: () => 'EXTRACT(EPOCH FROM NOW()) * 1000' })
   createdAt: number = Date.now();
