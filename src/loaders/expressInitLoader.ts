@@ -2,6 +2,8 @@ import { MicroframeworkLoader, MicroframeworkSettings } from 'microframework-w3t
 import { createExpressServer } from 'routing-controllers';
 import { UserController, RoleController, ProtocolController, TagController, AuthenticationController, VideoContentController } from '../api/v1/controllers';
 import Server from '../app';
+import { TextContentController } from '../api/v1/controllers/text.controller';
+import { VoteController } from '../api/v1/controllers/vote.controller';
 
 // Define a loader for initializing Express server with routing-controllers
 export const expressInitLoader: MicroframeworkLoader = (settings?: MicroframeworkSettings) => {
@@ -14,7 +16,9 @@ export const expressInitLoader: MicroframeworkLoader = (settings?: Microframewor
       ProtocolController,
       TagController,
       AuthenticationController,
-      VideoContentController
+      VideoContentController,
+      TextContentController,
+      VoteController
     ],
   });
 
