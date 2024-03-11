@@ -5,10 +5,12 @@ import { User } from '../../models/user.model';
 import { AppDataSource } from '../../../loaders/typeormLoader';
 import axios from 'axios';
 import { v4 as uuidv4 } from 'uuid';
+import AnalyticsService from '../../../util/mixPanel.config';
 
 // Get repository and instantiate UserService
 const userRepository = AppDataSource.getRepository(User);
 const userService = new UserService();
+const analyticsService = new AnalyticsService();
 
 // Interface for user data
 interface UserData {
@@ -73,7 +75,12 @@ export class AuthenticationService {
 			newUser.biography = data.biography;
 			newUser.role = data.role;
 			await userService.create(newUser);
-			userId = String(newUser.id);
+
+            // Fetch IP address of the current user
+            const ip = await this.getIPAddress();
+
+            // Call setUser from AnalyticsService
+            analyticsService.setUser(newUser.id, ip);  //Create User for mixpanel
 		}
 
 		// Get and return user data
@@ -109,4 +116,15 @@ export class AuthenticationService {
 
 		return { success: true };
 	}
+
+    // Function to fetch the IP address of the current user
+    private async getIPAddress(): Promise<string> {
+        try {
+            const response = await axios.get('https://api.ipify.org?format=json');
+            return response.data.ip;
+        } catch (error) {
+            console.error('Error fetching IP address:', error);
+            return '';
+        }
+    }
 }
