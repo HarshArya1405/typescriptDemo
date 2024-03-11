@@ -4,6 +4,7 @@ import dbConfig from './env.db';
 import mailConfig from './env.email';
 import s3Config from './env.aws.s3';
 import auth0Config from './env.auth0';
+import mixPanelConfig from './env.mixPannelconfig';
 
 const mergedEnvironmentConfig = {
     ...baseConfig,
@@ -11,7 +12,8 @@ const mergedEnvironmentConfig = {
     ...dbConfig,
     ...mailConfig,
     ...s3Config,
-    ...auth0Config
+    ...auth0Config,
+    ...mixPanelConfig
 };
 
 Object.freeze(mergedEnvironmentConfig);
