@@ -20,10 +20,6 @@ interface MixpanelUserParams {
     'ip'?: string;
 }
 
-interface EventData {
-    [key: string]: string | number | boolean;
-}
-
 class AnalyticsService {
 
     /**
@@ -33,21 +29,24 @@ class AnalyticsService {
      * @param userId user id
      * @returns {}
      */
-    async track(eventName: string, eventData: EventData, userId: string): Promise<void> {
+    async track(eventName: string, eventData: string, userId: string): Promise<void> {
         try {
             if (!eventData) {
-                eventData = {};
+                eventData = JSON.stringify({});
             }
-
+    
             if (userId) {
-                eventData.distinct_id = userId;
+                const parsedEventData: { [key: string]: string } = JSON.parse(eventData);
+                parsedEventData.distinct_id = userId;
+                eventData = JSON.stringify(parsedEventData);
             }
-            mixpanel.track(eventName, eventData);
+            mixpanel.track(eventName, JSON.parse(eventData));
         } catch (err) {
-            logger.log('error', 'send mobile message: stacktrace :: ${err}');
+            logger.log('error', `send mobile message: stacktrace :: ${err}`);
             throw err;
         }
     }
+    
 
     /**
      * Set user
