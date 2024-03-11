@@ -4,6 +4,8 @@ import { AppDataSource } from '../../../loaders/typeormLoader';
 import { DuplicateRecordFoundError, NoRecordFoundError } from '../../errors';
 import { MESSAGES } from '../../constants/messages';
 import { FindManyOptions, In, Like } from 'typeorm';
+import AnalyticsService from '../../../util/mixPanel.config';
+import logger from '../../../util/logger';
 
 // Get repositories
 const tagRepository = AppDataSource.getRepository(Tag);
@@ -11,6 +13,8 @@ const protocolRepository = AppDataSource.getRepository(Protocol);
 const userRepository = AppDataSource.getRepository(User);
 const onBoardingFunnelRepository = AppDataSource.getRepository(OnBoardingFunnel);
 const socialHandleRepository = AppDataSource.getRepository(SocialHandle);
+
+const analyticsService = new AnalyticsService();
 
 // Service class for User
 @Service()
@@ -29,6 +33,11 @@ export class UserService {
 		}
 
 		const user = await userRepository.save(userObj);
+		try {
+			await analyticsService.track('User Created', { userId: user.id }, user.id);
+		} catch (err) {
+			logger.log('error', `Error tracking user creation: ${err}`);
+		}
 		return user;
 	}
 
@@ -68,9 +77,7 @@ export class UserService {
 
 	// Method to update an existing user
 	public async update(userId: string, data: Partial<User>): Promise<object> {
-		const user = await userRepository.findOneBy({
-			id: userId,
-		});
+		const user = await userRepository.findOneBy({ id: userId });
 		if (!user) {
 			throw new NoRecordFoundError(MESSAGES.USER_NOT_EXIST);
 		}
@@ -88,6 +95,13 @@ export class UserService {
 		}
 		Object.assign(user, data);
 		await userRepository.save(user);
+
+		try {
+			await analyticsService.track('User Updated', { userId }, userId);
+		} catch (err) {
+			logger.log('error', `Error tracking user update: ${err}`);
+		}
+
 		return user;
 	}
 
@@ -100,6 +114,11 @@ export class UserService {
 			throw new NoRecordFoundError(MESSAGES.USER_NOT_EXIST);
 		}
 		await userRepository.delete(userId);
+		try {
+			await analyticsService.track('User Deleted', { userId }, userId);
+		} catch (err) {
+			logger.log('error', `Error tracking user update: ${err}`);
+		}
 		return { success: true };
 	}
 
@@ -112,6 +131,13 @@ export class UserService {
 		const tags = await tagRepository.find({ where: { id: In(tagIds) } });
 		user.tags = tags;
 		await userRepository.save(user);
+	
+		try {
+			await analyticsService.track('Tags Saved for User', { userId }, userId);
+		} catch (err) {
+			logger.log('error', `Error tracking tags saved for user: ${err}`);
+		}
+	
 		return user;
 	}
 
@@ -124,6 +150,11 @@ export class UserService {
 		const tags = await tagRepository.find({ where: { id: In(tagIds) } });
 		user.tags = tags;
 		await userRepository.save(user);
+		try {
+			await analyticsService.track('Tags Updated for User', { userId }, userId);
+		} catch (err) {
+			logger.log('error', `Error tracking tags updated for user: ${err}`);
+		}
 		return user;
 	}
 
@@ -145,6 +176,11 @@ export class UserService {
 		const protocols = await protocolRepository.find({ where: { id: In(protocolIds) } });
 		user.protocols = protocols;
 		await userRepository.save(user);
+		try {
+			await analyticsService.track('Protocols Saved for User', { userId }, userId);
+		} catch (err) {
+			logger.log('error', `Error tracking protocols saved for user: ${err}`);
+		}
 		return user;
 	}
 
@@ -157,6 +193,12 @@ export class UserService {
 		const protocols = await protocolRepository.find({ where: { id: In(protocolIds) } });
 		user.protocols = protocols;
 		await userRepository.save(user);
+
+		try {
+			await analyticsService.track('Protocols Updated for User', { userId }, userId);
+		} catch (err) {
+			logger.log('error', `Error tracking protocols updated for user: ${err}`);
+		}
 		return user;
 	}
 
