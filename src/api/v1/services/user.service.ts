@@ -34,7 +34,7 @@ export class UserService {
 
 		const user = await userRepository.save(userObj);
 		try {
-			await analyticsService.track('User Created', { userId: user.id }, user.id);
+			await analyticsService.track('User Created', JSON.stringify({ userId: user.id }), user.id);
 		} catch (err) {
 			logger.log('error', `Error tracking user creation: ${err}`);
 		}
@@ -97,7 +97,7 @@ export class UserService {
 		await userRepository.save(user);
 
 		try {
-			await analyticsService.track('User Updated', { userId }, userId);
+			await analyticsService.track('User Updated', JSON.stringify({ userId }), userId);
 		} catch (err) {
 			logger.log('error', `Error tracking user update: ${err}`);
 		}
@@ -115,7 +115,7 @@ export class UserService {
 		}
 		await userRepository.delete(userId);
 		try {
-			await analyticsService.track('User Deleted', { userId }, userId);
+			await analyticsService.track('User Deleted', JSON.stringify({ userId }), userId);
 		} catch (err) {
 			logger.log('error', `Error tracking user update: ${err}`);
 		}
@@ -133,7 +133,7 @@ export class UserService {
 		await userRepository.save(user);
 	
 		try {
-			await analyticsService.track('Tags Saved for User', { userId }, userId);
+			await analyticsService.track('Tags Saved for User', JSON.stringify({ userId }), userId);
 		} catch (err) {
 			logger.log('error', `Error tracking tags saved for user: ${err}`);
 		}
@@ -151,7 +151,7 @@ export class UserService {
 		user.tags = tags;
 		await userRepository.save(user);
 		try {
-			await analyticsService.track('Tags Updated for User', { userId }, userId);
+			await analyticsService.track('Tags Updated for User', JSON.stringify({ userId }), userId);
 		} catch (err) {
 			logger.log('error', `Error tracking tags updated for user: ${err}`);
 		}
@@ -177,7 +177,7 @@ export class UserService {
 		user.protocols = protocols;
 		await userRepository.save(user);
 		try {
-			await analyticsService.track('Protocols Saved for User', { userId }, userId);
+			await analyticsService.track('Protocols Saved for User', JSON.stringify({ userId }), userId);
 		} catch (err) {
 			logger.log('error', `Error tracking protocols saved for user: ${err}`);
 		}
@@ -195,7 +195,7 @@ export class UserService {
 		await userRepository.save(user);
 
 		try {
-			await analyticsService.track('Protocols Updated for User', { userId }, userId);
+			await analyticsService.track('Protocols Updated for User', JSON.stringify({ userId }), userId);
 		} catch (err) {
 			logger.log('error', `Error tracking protocols updated for user: ${err}`);
 		}
