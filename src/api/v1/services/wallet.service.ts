@@ -3,8 +3,11 @@ import { AppDataSource } from '../../../loaders/typeormLoader';
 import { FindManyOptions } from 'typeorm';
 import { DuplicateRecordFoundError, NoRecordFoundError } from '../../errors';
 import { MESSAGES } from '../../constants/messages';
+import AnalyticsService from '../../../util/mixPanel.config';
 
 const walletRepository = AppDataSource.getRepository(Wallet);
+
+const analyticsService = new AnalyticsService();
 
 export class WalletService {
     constructor() { }
@@ -20,6 +23,14 @@ export class WalletService {
             }
 
             const wallet = await walletRepository.save(data);
+
+            // Track analytics for wallet creation
+            try {
+                await analyticsService.track('Wallet Created', { userId, walletId: wallet.id }, userId);
+            } catch (err) {
+                console.error(`Error tracking wallet creation: ${err}`);
+            }
+
             return wallet;
         } catch (error) {
             console.error('Error creating wallet:', error);
@@ -70,6 +81,14 @@ export class WalletService {
             // Update the properties of the wallet object
             Object.assign(wallet, data);
             await walletRepository.save(wallet);
+
+            // Track analytics for wallet update
+            try {
+                await analyticsService.track('Wallet Updated', { userId, walletId }, userId);
+            } catch (err) {
+                console.error(`Error tracking wallet update: ${err}`);
+            }
+
             return wallet;
         } catch (error) {
             console.error('Error updating wallet:', error);
@@ -84,6 +103,12 @@ export class WalletService {
                 throw new NoRecordFoundError(MESSAGES.WALLET_NOT_EXIST);
             }
             await walletRepository.delete(walletId);
+            // Track analytics for wallet deletion
+            try {
+                await analyticsService.track('Wallet Deleted', { userId, walletId }, userId);
+            } catch (err) {
+                console.error(`Error tracking wallet deletion: ${err}`);
+            }
             return { success: true };
         } catch (error) {
             console.error('Error deleting wallet:', error);
