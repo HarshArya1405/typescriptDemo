@@ -30,6 +30,7 @@
     "jsonwebtoken": "^9.0.2",
     "jwk-to-pem": "^2.0.5",
     "microframework-w3tec": "^0.6.3",
+    "mixpanel": "^0.18.0",
     "nodemon": "^3.0.3",
     "pg": "^8.11.3",
     "routing-controllers": "^0.10.4",
