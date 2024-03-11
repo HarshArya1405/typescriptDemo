@@ -1,7 +1,7 @@
 import { Wallet } from '../../models';
 import { AppDataSource } from '../../../loaders/typeormLoader';
 import { FindManyOptions } from 'typeorm';
-import { DuplicateRecordFoundError, NoRecordFoundError } from '../../errors';
+import { NoRecordFoundError } from '../../errors';
 import { MESSAGES } from '../../constants/messages';
 
 const walletRepository = AppDataSource.getRepository(Wallet);
@@ -11,13 +11,13 @@ export class WalletService {
 
     public async create(userId: string, data: Partial<Wallet>): Promise<Wallet> {
         try {
-            const existingWallet = await walletRepository.findOne({
-                where: { userId, name: data.name }
-            });
+            // const existingWallet = await walletRepository.findOne({
+            //     where: { userId, name: data.name }
+            // });
 
-            if (existingWallet) {
-                throw new DuplicateRecordFoundError(MESSAGES.WALLET_NAME_EXIST);
-            }
+            // if (existingWallet) {
+            //     throw new DuplicateRecordFoundError(MESSAGES.WALLET_NAME_EXIST);
+            // }
 
             const wallet = await walletRepository.save(data);
             return wallet;
