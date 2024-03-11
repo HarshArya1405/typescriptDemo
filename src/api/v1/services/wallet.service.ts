@@ -26,7 +26,7 @@ export class WalletService {
 
             // Track analytics for wallet creation
             try {
-                await analyticsService.track('Wallet Created', { userId, walletId: wallet.id }, userId);
+                await analyticsService.track('Wallet Created', JSON.stringify({ userId, walletId: wallet.id }), userId);
             } catch (err) {
                 console.error(`Error tracking wallet creation: ${err}`);
             }
@@ -84,7 +84,7 @@ export class WalletService {
 
             // Track analytics for wallet update
             try {
-                await analyticsService.track('Wallet Updated', { userId, walletId }, userId);
+                await analyticsService.track('Wallet Updated', JSON.stringify({ userId, walletId }), userId);
             } catch (err) {
                 console.error(`Error tracking wallet update: ${err}`);
             }
@@ -105,7 +105,7 @@ export class WalletService {
             await walletRepository.delete(walletId);
             // Track analytics for wallet deletion
             try {
-                await analyticsService.track('Wallet Deleted', { userId, walletId }, userId);
+                await analyticsService.track('Wallet Deleted', JSON.stringify({ userId, walletId }), userId);
             } catch (err) {
                 console.error(`Error tracking wallet deletion: ${err}`);
             }
