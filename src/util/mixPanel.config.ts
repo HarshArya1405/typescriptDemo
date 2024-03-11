@@ -1,96 +1,81 @@
-// import { User, Role } from '../api/models';
-// import Mixpanel from 'mixpanel';
-// import logger from "./logger";
-// import ENV from "../config/environments";
-// import { TeamCaregivers, Teams, Organization } from '../api/models'; // Assuming these imports are required
+import { User } from '../api/models';
+import Mixpanel from 'mixpanel';
+import logger from './logger';
+import ENV from '../config/environments';
+import { AppDataSource } from '../loaders/typeormLoader';
 
-// const mixpanelConfig = ENV.mixpanel;
-// const mixpanel = Mixpanel.init(mixpanelConfig?.token);
 
-// class AnalyticsService {
+const userRepository = AppDataSource.getRepository(User);
 
-//     /**
-//      * track analytics
-//      * @param eventName event name
-//      * @param eventData event data
-//      * @param userId user id
-//      * @returns {}
-//      */
-//     async track(eventName: string, eventData: any, userId: string): Promise<void> {
-//         try {
-//             if (!eventData) {
-//                 eventData = {};
-//             }
+const mixpanelConfig = ENV.mixpanel;
+const mixpanelToken = mixpanelConfig?.token || ''; // Provide a default empty string if mixpanelConfig?.token is undefined
+const mixpanel = Mixpanel.init(mixpanelToken);
 
-//             if (userId) {
-//                 eventData.distinct_id = userId;
-//             }
-//             await mixpanel.track(eventName, eventData);
-//         } catch (err) {
-//             logger.log('error', `send mobile message: stacktrace :: ${err}`);
-//             throw err;
-//         }
-//     }
 
-//     /**
-//      * Set user
-//      * @param userId user id
-//      * @param ip ip address
-//      * @returns {}
-//      */
-//     async setUser(userId: string, ip?: string): Promise<void> {
-//         try {
-//             const user = await User.findOne({ where: { id: userId }, include: [{ model: Role }] });
-//             if (user) {
-//                 const params: any = {
-//                     "$first_name": user.firstName,
-//                     "$last_name": user.lastName,
-//                     "$created": user.createdAt,
-//                     "$email": user.email,
-//                     "$phone": user.phone,
-//                     "role": user.Roles,
-//                     "assignedTeams": [],
-//                     "assignedOrgs": [],
-//                     "assignedTeamIDs": [],
-//                     "assignedOrgIDs": [],
-//                     "userTeamCount": 0,
-//                     "userOrgCount": 0
-//                 };
-//                 if (ip) {
-//                     params.ip = ip;
-//                 }
+interface MixpanelUserParams {
+    '$first_name'?: string;
+    '$email'?: string;
+    '$phone'?: string;
+    'role'?: string;
+    'ip'?: string;
+}
 
-//                 const usersTeam = await TeamCaregivers.findAll({ where: { UserId: userId }, include: { model: Teams } });
+interface EventData {
+    [key: string]: string | number | boolean;
+}
 
-//                 params.userTeamCount = usersTeam.length;
-//                 const orgIDs: string[] = [];
-//                 await asyncForEach(usersTeam, async (team) => {
-//                     params.assignedTeams.push(team.Team.name);
-//                     params.assignedTeamIDs.push(team.Team.id);
-//                     orgIDs.push(team.Team.OrganizationId);
-//                 });
-//                 const uniqueOrgIDs = Array.from(new Set(orgIDs));
+class AnalyticsService {
 
-//                 const organization = await Organization.findAll({ where: { id: uniqueOrgIDs } });
-//                 params.userOrgCount = organization.length;
-//                 await asyncForEach(organization, async (org) => {
-//                     params.assignedOrgs.push(org.name);
-//                     params.assignedOrgIDs.push(org.id);
-//                 });
+    /**
+     * track analytics
+     * @param eventName event name
+     * @param eventData event data
+     * @param userId user id
+     * @returns {}
+     */
+    async track(eventName: string, eventData: EventData, userId: string): Promise<void> {
+        try {
+            if (!eventData) {
+                eventData = {};
+            }
 
-//                 mixpanel.people.set(user.id.toString(), params);
-//             }
-//         } catch (err) {
-//             logger.log('error', `send mobile message: stacktrace :: ${err}`);
-//             throw err;
-//         }
-//     }
-// }
+            if (userId) {
+                eventData.distinct_id = userId;
+            }
+            mixpanel.track(eventName, eventData);
+        } catch (err) {
+            logger.log('error', 'send mobile message: stacktrace :: ${err}');
+            throw err;
+        }
+    }
 
-// export = AnalyticsService;
+    /**
+     * Set user
+     * @param userId user id
+     * @param ip ip address
+     * @returns {}
+     */
+    async setUser(userId: string, ip?: string): Promise<void> {
+        try {
+            const user = await userRepository.findOne({ where: { id: userId }});
+            if (user) {
+                const params: MixpanelUserParams = {
+                    '$first_name': user.fullName,
+                    '$email': user.email,
+                    '$phone': user.phone,
+                    'role': user.role,
+                };
+                if (ip) {
+                    params.ip = ip;
+                }
+                mixpanel.people.set(user.id, params);
+            }
+        } catch (err) {
+            logger.log('error', 'setUser: ${err}');
+            throw err;
+        }
+    }
+    
+}
 
-// async function asyncForEach(array: any[], callback: (item: any, index: number, array: any[]) => Promise<void>): Promise<void> {
-//     for (let index = 0; index < array.length; index++) {
-//         await callback(array[index], index, array);
-//     }
-// }
+export = AnalyticsService;
