@@ -62,7 +62,12 @@ export class VideoContentController {
     this.videoContentService = new VideoContentService();
   }
 
-  // Import video content
+  /**
+   * Endpoint to import video content for a creator
+   * @param creatorId Creator ID
+   * @param body Video content data to import
+   * @returns Success message if import is successful
+   */
   @Post('/creator/:creatorId/videoContent/import')
   @ResponseSchema(VideoContent)
   public async import(
@@ -82,7 +87,12 @@ export class VideoContentController {
     }
   }
 
-  // Create video content
+  /**
+   * Endpoint to create video content for a creator
+   * @param creatorId Creator ID
+   * @param body Video content data to create
+   * @returns Created video content
+   */
   @Post('/creator/:creatorId/videoContent')
   @ResponseSchema(VideoContent)
   public async createVideoContent(
@@ -109,7 +119,12 @@ export class VideoContentController {
     }
   }
 
-  // List video contents
+  /**
+   * Endpoint to list video contents for a creator
+   * @param creatorId Creator ID
+   * @param query Query parameters
+   * @returns List of video contents
+   */
   @Get('/creator/videoContents')
   public async list(
     @Param('creatorId') creatorId: string,
@@ -120,7 +135,12 @@ export class VideoContentController {
     return await this.videoContentService.list(creatorId, query);
   }
 
-  // Get video content by ID
+  /**
+   * Endpoint to get video content by ID for a creator
+   * @param creatorId Creator ID
+   * @param id Video content ID
+   * @returns Video content information
+   */
   @Get('/creator/:creatorId/videoContent/:id')
   public async get(
     @Param('creatorId') creatorId: string,
@@ -138,7 +158,13 @@ export class VideoContentController {
     }
   }
 
-  // Update video content by ID
+  /**
+   * Endpoint to update video content by ID for a creator
+   * @param creatorId Creator ID
+   * @param id Video content ID
+   * @param newData New video content data
+   * @returns Updated video content
+   */
   @Put('/creator/:creatorId/videoContent/:id')
   public async update(
     @Param('creatorId') creatorId: string,
@@ -157,7 +183,12 @@ export class VideoContentController {
     }
   }
 
-  // Delete video content by ID
+  /**
+   * Endpoint to delete video content by ID for a creator
+   * @param creatorId Creator ID
+   * @param id Video content ID
+   * @returns Success message or error
+   */
   @Delete('/creator/:creatorId/videoContent/:id')
   public async delete(
     @Param('id') id: string,

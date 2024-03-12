@@ -13,8 +13,13 @@ export class VoteController {
     constructor() {
         this.voteService = new VoteService();
     }
-
-    // Create a vote for a specific content
+  
+    /**
+     * Endpoint to create a vote for a specific content
+     * @param contentId ID of the content
+     * @param body Vote data including userID and voteType
+     * @returns Created vote
+     */
     @Post('')
     @ResponseSchema(Vote)
     public async create(
@@ -29,8 +34,12 @@ export class VoteController {
             throw error;
         }
     }
-
-    // Retrieve all votes for a specific content
+    
+    /**
+     * Endpoint to retrieve all votes for a specific content
+     * @param contentId ID of the content
+     * @returns List of votes for the content
+     */
     @Get('')
     public async list(
         @Param('contentId') contentId: string

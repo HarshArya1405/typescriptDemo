@@ -39,7 +39,12 @@ export class WalletController {
     this.walletService = new WalletService();
   }
 
-  // Create wallet
+  /**
+   * Endpoint to create a wallet
+   * @param userId ID of the user
+   * @param body Wallet data to create
+   * @returns Created wallet
+   */
   @Post('/:userId')
   @ResponseSchema(Wallet)
   public async createWallet(
@@ -59,22 +64,32 @@ export class WalletController {
     }
   }
 
-  // List wallets
+  /**
+   * Endpoint to list wallets
+   * @param userId ID of the user
+   * @param query Query parameters
+   * @returns List of wallets
+   */
   @Get('/:userId')
   public async listWallets(
     @Param('userId') userId: string,
     @QueryParams() query: ListWalletsQuery
   ): Promise<object> {
     try {
-      if (userId && !isUUID(userId)) throw new BadRequestParameterError(`Invalid id, UUID format expected but received ${userId}`);
-      return await this.walletService.list(userId,query);
+      if (userId && !isUUID(userId)) throw new BadRequestParameterError(`Invalid userId, UUID format expected but received ${userId}`);
+      return await this.walletService.list(userId, query);
     } catch (error) {
       console.error('Error listing wallets:', error);
       throw error;
     }
   }
 
-  // Get wallet by ID
+  /**
+   * Endpoint to get a wallet by ID
+   * @param userId ID of the user
+   * @param id ID of the wallet
+   * @returns Wallet information
+   */
   @Get('/:userId/:id')
   public async getWallet(
     @Param('userId') userId: string,
@@ -90,7 +105,13 @@ export class WalletController {
     }
   }
 
-  // Update wallet by ID
+  /**
+   * Endpoint to update a wallet by ID
+   * @param userId ID of the user
+   * @param id ID of the wallet
+   * @param newData New wallet data
+   * @returns Updated wallet
+   */
   @Put('/:userId/:id')
   public async updateWallet(
     @Param('userId') userId: string,
@@ -107,7 +128,12 @@ export class WalletController {
     }
   }
 
-  // Delete wallet by ID
+  /**
+   * Endpoint to delete a wallet by ID
+   * @param userId ID of the user
+   * @param id ID of the wallet
+   * @returns Success message or error
+   */
   @Delete('/:userId/:id')
   public async deleteWallet(
     @Param('userId') userId: string,
@@ -122,5 +148,4 @@ export class WalletController {
       throw error;
     }
   }
-
 }

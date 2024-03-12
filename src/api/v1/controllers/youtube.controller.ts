@@ -31,7 +31,10 @@ export class YoutubeController {
         this.youtubeService = new YoutubeService();
     }
 
-    // Create a YouTube for a specific content
+    /**
+     * Endpoint to get authentication URL for YouTube
+     * @returns Authentication URL
+     */
     @Get('/authUrl')
     public async getAuthUrl(): Promise<object> {
         try {
@@ -42,7 +45,12 @@ export class YoutubeController {
         }
     }
 
-    // Retrieve all YouTubes for a specific content
+    /**
+     * Endpoint to generate token for YouTube
+     * @param userId ID of the user
+     * @param body Token request body including code
+     * @returns Object containing token information
+     */
     @Post('/:userId/generateToken')
     public async generateToken(
         @Param('userId') userId: string,
@@ -73,6 +81,12 @@ export class YoutubeController {
     //     }
     // }
 
+    /**
+     * Endpoint to retrieve draft list from YouTube
+     * @param query Query parameters
+     * @param id ID of the user
+     * @returns Draft list from YouTube
+     */
     @Get('/:userId/draftList')
     public async draftList(
         @QueryParams() query: GetYTDraftQuery,

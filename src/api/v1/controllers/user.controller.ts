@@ -112,7 +112,11 @@ export class UserController {
 
     constructor() { }
 
-    // Create a new user
+    /**
+     * Endpoint to create a new user
+     * @param body User data to create
+     * @returns Created user
+     */
     @Post()
     public async create(@Body() body: CreateUserBody): Promise<object> {
         // Create a new user object from the body
@@ -129,7 +133,11 @@ export class UserController {
         return userService.create(user);
     }
 
-    // Get a user by ID
+    /**
+     * Endpoint to get a user by ID
+     * @param id User ID
+     * @returns User information if found, else null
+     */
     @Get('/:id')
     public async get(@Param('id') id: string): Promise<object | null> {
         // If 'id' is defined check if it's a valid UUID format
@@ -137,13 +145,22 @@ export class UserController {
         return await userService.get(id);
     }
 
-    // List users based on query parameters
+    /**
+     * Endpoint to list users based on query parameters
+     * @param query Query parameters
+     * @returns List of users
+     */
     @Get()
     public async list(@QueryParams() query: GetUsersQuery): Promise<object> {
         return await userService.list(query);
     }
 
-    // Update a user by ID
+    /**
+     * Endpoint to update a user by ID
+     * @param id User ID
+     * @param body Partial user data to update
+     * @returns Updated user
+     */
     @Put('/:id')
     public async update(@Param('id') id: string, @Body() body: Partial<User>): Promise<object> {
         // If 'id' is defined check if it's a valid UUID format
@@ -151,7 +168,11 @@ export class UserController {
         return await userService.update(id, body);
     }
 
-    // Delete a user by ID
+    /**
+     * Endpoint to delete a user by ID
+     * @param id User ID
+     * @returns Deletion result
+     */
     @Delete('/:id')
     public async delete(@Param('id') id: string): Promise<object> {
         // If 'id' is defined check if it's a valid UUID format
@@ -161,7 +182,12 @@ export class UserController {
 
     // Tag and protocol APIs
 
-    // Save tags for a user
+    /**
+     * Endpoint to save tags for a user
+     * @param userId User ID
+     * @param body Tag IDs to save
+     * @returns Updated user with saved tags
+     */
     @Post('/:userId/tags')
     public async saveTags(@Param('userId') userId: string, @Body() body: SaveTagsBody): Promise<User> {
         // If 'id' is defined check if it's a valid UUID format
@@ -170,7 +196,12 @@ export class UserController {
         return await userService.saveTags(userId, tagIds);
     }
 
-    // Update tags for a user
+    /**
+     * Endpoint to update tags for a user
+     * @param userId User ID
+     * @param body Tag IDs to update
+     * @returns Updated user with updated tags
+     */
     @Put('/:userId/tags')
     public async updateTags(@Param('userId') userId: string, @Body() body: SaveTagsBody): Promise<User> {
         // If 'id' is defined check if it's a valid UUID format
@@ -179,7 +210,11 @@ export class UserController {
         return await userService.updateTags(userId, tagIds);
     }
 
-    // List tags for a user
+    /**
+     * Endpoint to list tags for a user
+     * @param userId User ID
+     * @returns List of tags associated with the user
+     */
     @Get('/:userId/tags')
     public async listTags(@Param('userId') userId: string): Promise<User> {
         // If 'id' is defined check if it's a valid UUID format
@@ -187,7 +222,12 @@ export class UserController {
         return await userService.listTags(userId);
     }
 
-    // Save protocols for a user
+    /**
+     * Endpoint to save protocols for a user
+     * @param userId User ID
+     * @param body Protocol IDs to save
+     * @returns Updated user with saved protocols
+     */
     @Post('/:userId/protocols')
     public async saveUserProtocols(@Param('userId') userId: string, @Body() body: SaveProtocolsBody): Promise<User> {
         // If 'id' is defined check if it's a valid UUID format
@@ -196,7 +236,12 @@ export class UserController {
         return await userService.saveProtocols(userId, protocolIds);
     }
 
-    // Update protocols for a user
+    /**
+     * Endpoint to update protocols for a user
+     * @param userId User ID
+     * @param body Protocol IDs to update
+     * @returns Updated user with updated protocols
+     */
     @Put('/:userId/protocols')
     public async updateProtocols(@Param('userId') userId: string, @Body() body: SaveProtocolsBody): Promise<User> {
         // If 'id' is defined check if it's a valid UUID format
@@ -205,7 +250,11 @@ export class UserController {
         return await userService.updateProtocols(userId, protocolIds);
     }
 
-    // List protocols for a user
+    /**
+     * Endpoint to list protocols for a user
+     * @param userId User ID
+     * @returns List of protocols associated with the user
+     */
     @Get('/:userId/protocols')
     public async listProtocols(@Param('userId') userId: string): Promise<User> {
         // If 'id' is defined check if it's a valid UUID format
@@ -215,7 +264,12 @@ export class UserController {
 
     // Onboarding funnel APIs
 
-    // Set onboard funnel for a user
+    /**
+     * Endpoint to set onboard funnel for a user
+     * @param userId User ID
+     * @param body Onboarding funnel data
+     * @returns Updated onboard funnel status
+     */
     @Post('/:userId/onboardFunnel')
     public async setOnboardFunnel(@Param('userId') userId: string, @Body() body: OnboardFunnelBody): Promise<OnBoardingFunnel | undefined> {
         // If 'id' is defined check if it's a valid UUID format
@@ -223,7 +277,11 @@ export class UserController {
         return await userService.setOnboardFunnel(userId, body.stage, body.status);
     }
 
-    // Get onboard funnel for a user
+    /**
+     * Endpoint to get onboard funnel for a user
+     * @param userId User ID
+     * @returns Onboard funnel status
+     */
     @Get('/:userId/onboardFunnel')
     public async getOnboardFunnel(@Param('userId') userId: string): Promise<object> {
         // If 'id' is defined check if it's a valid UUID format
@@ -231,9 +289,12 @@ export class UserController {
         return await userService.getOnboardFunnel(userId);
     }
 
-
-    // Create or update a user's social handle
-    
+    /**
+     * Endpoint to create or update a user's social handle
+     * @param userId User ID
+     * @param body Social handle data
+     * @returns Created or updated social handle
+     */
     @Post('/:userId/socialHandle')
     public async createSocialHandles(@Param('userId') userId: string, @Body() body: []): Promise<object> {
         if (userId && !isUUID(userId)) throw new BadRequestParameterError(`Invalid id, UUID format expected but received ${userId}`);
@@ -243,6 +304,12 @@ export class UserController {
         return {success:true};
     }
 
+    /**
+     * Endpoint to create or update a user's social handle
+     * @param userId User ID
+     * @param body Social handle data
+     * @returns Created or updated social handle
+     */
     @Post('/:userId/saveSocialHandle')
     public async createOrUpdateSocialHandle(@Param('userId') userId: string, @Body() body: SocialHandleBody): Promise<SocialHandle | undefined> {
         if (userId && !isUUID(userId)) throw new BadRequestParameterError(`Invalid id, UUID format expected but received ${userId}`);
@@ -254,7 +321,11 @@ export class UserController {
         }
     }
 
-    // Get a user's social handles
+    /**
+     * Endpoint to get a user's social handles
+     * @param userId User ID
+     * @returns List of social handles associated with the user
+     */
     @Get('/:userId/socialHandle')
     public async getSocialHandles(@Param('userId') userId: string): Promise<SocialHandle[]> {
         if (userId && !isUUID(userId)) throw new BadRequestParameterError(`Invalid id, UUID format expected but received ${userId}`);
