@@ -18,11 +18,11 @@ class CreateTagBody extends BaseTag {}
 // List tags query class with limit, offset, and optional name filter
 class ListTagsQuery {
   @IsNumber()
-  @IsNotEmpty()
+  @IsOptional()
   limit!: number;
 
   @IsNumber()
-  @IsNotEmpty()
+  @IsOptional()
   offset!: number;
 
   @IsOptional()
@@ -74,7 +74,8 @@ export class TagController {
     @Body() newData: BaseTag 
     ): Promise<{ success: boolean } | { error: string }> {
     try {
-      if (id && !isUUID(id)) throw new BadRequestParameterError(`Invalid id, UUID format expected but received ${id}`);
+      // If 'id' is defined check if it's a valid UUID format
+      if (id && !isUUID(id)) throw new BadRequestParameterError(`Invalid tagId, UUID format expected but received ${id}`);
       const result = await this.tagService.update(id, newData);
       return result;
     } catch (error) {
@@ -91,7 +92,8 @@ export class TagController {
   @Delete('/:id')
   public async delete(@Param('id') id: string): Promise<{ success: boolean } | { error: string }> {
     try {
-      if (id && !isUUID(id)) throw new BadRequestParameterError(`Invalid id, UUID format expected but received ${id}`);
+      // If 'id' is defined check if it's a valid UUID format
+      if (id && !isUUID(id)) throw new BadRequestParameterError(`Invalid tagId, UUID format expected but received ${id}`);
       const result = await this.tagService.delete(id);
       return result;
     } catch (error) {

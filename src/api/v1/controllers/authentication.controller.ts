@@ -3,10 +3,10 @@ import {
     Body, JsonController, Post
 } from 'routing-controllers';
 
-import { AuthenticationService } from '../services/authentication.service';
+import { UserService } from '../services/user.service';
 
 // Initialize authentication service
-const authenticationService = new AuthenticationService();
+const userService = new UserService();
 
 // Interface for user data
 interface UserData {
@@ -49,7 +49,7 @@ export class AuthenticationController {
             role: body.role,
             sub: body.sub
         };
-        return await authenticationService.checkUser(user);
+        return await userService.checkUser(user);
     }
 
     /**
@@ -60,7 +60,7 @@ export class AuthenticationController {
      */
     @Post('/linkUser')
     public async linkUser(primaryUserId: string, secondaryUserId: string): Promise<{ success: boolean }> {
-        return await authenticationService.linkUser(primaryUserId, secondaryUserId);
+        return await userService.linkUser(primaryUserId, secondaryUserId);
     }
 
     /**
@@ -71,6 +71,6 @@ export class AuthenticationController {
      */
     @Post('/unlinkUser')
     public async unlinkUser(primaryUserId: string, provider: string): Promise<{ success: boolean }> {
-        return await authenticationService.linkUser(primaryUserId, provider);
+        return await userService.linkUser(primaryUserId, provider);
     }
 }

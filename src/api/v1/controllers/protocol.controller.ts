@@ -7,9 +7,11 @@ import { ProtocolService } from '../services/protocol.service';
 // Define query parameters for getting protocols
 class GetProtocolQuery {
     @IsPositive()
+    @IsOptional()
     public limit!: number;
 
     @IsNumber()
+    @IsOptional()
     public offset!: number;
 
     @IsOptional()

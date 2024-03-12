@@ -1,31 +1,34 @@
-import { Entity, PrimaryGeneratedColumn, Column, CreateDateColumn, UpdateDateColumn, BeforeUpdate, ManyToOne, JoinTable, ManyToMany } from 'typeorm';
-import { User } from './user.model';
+import { Entity, PrimaryGeneratedColumn, Column, CreateDateColumn, UpdateDateColumn, BeforeUpdate } from 'typeorm';
 import { v4 as uuidv4 } from 'uuid';
-import { Protocol } from './protocol.model';
-import { Tag } from './tag.model';
 
 @Entity()
-export class Text {
+export class YoutubeUserToken {
   @PrimaryGeneratedColumn('uuid')
   id: string = uuidv4();
 
-  @Column({ nullable: false })
+  @Column({ nullable: true })
   userId: string = '';
   
   @Column({ nullable: false })
-  content: string = '';
+  access_token: string = '';
 
   @Column({ nullable: false })
-  text: string = '';
+  refresh_token: string = '';
 
   @Column({ nullable: false })
-  caption: string = '';
+  scope: string = '';
 
   @Column({ nullable: false })
-  description: string = '';
+  token_type: string = '';
+
+  @Column({ nullable: false,type: 'bigint'})
+  expiry_date: number = 0;
 
   @Column({ nullable: false })
-  meta_information: string = '';
+  token: string = '';
+
+  @Column({ nullable: true })
+  playlistId: string = '';
 
   @CreateDateColumn({ type: 'bigint', default: () => 'EXTRACT(EPOCH FROM NOW()) * 1000' })
   createdAt: number = Date.now();
@@ -37,16 +40,4 @@ export class Text {
   updateTimestamp() {
     this.updatedAt = Date.now();
   }
-
-  @ManyToOne(() => User, user => user.texts)
-  user!: User;
-
-  @ManyToMany(() => Tag)
-  @JoinTable()
-  tags!: Tag[];
-
-  @ManyToMany(() => Protocol)
-  @JoinTable()
-  protocols!: Protocol[];
-  
 }

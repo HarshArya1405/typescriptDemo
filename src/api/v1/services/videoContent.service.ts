@@ -1,9 +1,10 @@
 // Import necessary modules and types
 import { VideoContent } from '../../models';
 import { AppDataSource } from '../../../loaders/typeormLoader';
-import { FindManyOptions, In } from 'typeorm';
+import { FindManyOptions, Like } from 'typeorm';
 import { DuplicateRecordFoundError, NoRecordFoundError } from '../../errors';
 import { MESSAGES } from '../../constants/messages';
+import logger from '../../../util/logger';
 
 // Get repository for video content
 const videoContentRepository = AppDataSource.getRepository(VideoContent);
@@ -21,6 +22,7 @@ export class VideoContentService {
      */
     public async import(creatorId: string, data: []): Promise<object> {
         try {
+            logger.info(`[VideoContentService][import]  - data : ${JSON.stringify(data)}`);
             if (data && data.length > 0) {
                 for (const row of data) {
                     await this.create(creatorId, row);
@@ -28,8 +30,8 @@ export class VideoContentService {
             }
             return { success: true };
         } catch (error) {
-            console.error('Error importing video content:', error);
-            throw error;
+            logger.error(`[VideoContentService][import] - Error : ${error}`);
+			throw error;
         }
     }
 
@@ -41,9 +43,9 @@ export class VideoContentService {
      */
     public async create(creatorId: string, data: VideoContent): Promise<VideoContent> {
         try {
+            logger.info(`[VideoContentService][create]  - creatorId : ${JSON.stringify(creatorId)} ,data : ${JSON.stringify(data)}`);
             const existingVideoContent = await videoContentRepository.findOne({
-                where: { userId: creatorId, title: data.title },
-                relations: ['tags', 'protocols']
+                where: { userId: creatorId, title: data.title }
             });
 
             if (existingVideoContent) {
@@ -54,8 +56,8 @@ export class VideoContentService {
 
             return videoContent;
         } catch (error) {
-            console.error('Error creating video content:', error);
-            throw error;
+            logger.error(`[VideoContentService][create] - Error : ${error}`);
+			throw error;
         }
     }
 
@@ -67,6 +69,7 @@ export class VideoContentService {
      */
     public async get(creatorId: string, videoContentId: string): Promise<VideoContent> {
         try {
+            logger.info(`[VideoContentService][get]  - creatorId : ${JSON.stringify(creatorId)} ,videoContentId : ${JSON.stringify(videoContentId)}`);
             const videoContent = await videoContentRepository.findOne({
                 where: { userId: creatorId, id: videoContentId },
                 relations: ['tags', 'protocols']
@@ -76,8 +79,8 @@ export class VideoContentService {
             }
             return videoContent;
         } catch (error) {
-            console.error('Error getting video content:', error);
-            throw error;
+            logger.error(`[VideoContentService][get] - Error : ${error}`);
+			throw error;
         }
     }
 
@@ -87,31 +90,27 @@ export class VideoContentService {
      * @param query Object containing limit, offset, and optional title for search
      * @returns Object containing the count and list of video content
      */
-    public async list(searchParams: { title?: string, creatorIds?: string, limit?: number, offset?: number }): Promise<VideoContent[]> {
+    public async list(creatorId: string, query: { limit?: number, offset?: number, title?: string }): Promise<object> {
         try {
+            logger.info(`[VideoContentService][list]  - creatorId : ${JSON.stringify(creatorId)} ,query : ${JSON.stringify(query)}`);
             const options: FindManyOptions<VideoContent> = {
+                skip: query.offset,
+                take: query.limit,
                 where: {},
-                take: searchParams.limit,
-                skip: searchParams.offset,
-                relations: ['tags', 'protocols']
             };
-    
-            if (searchParams.creatorIds && searchParams.creatorIds.length > 0) {
-                 const creatorIds = searchParams.creatorIds.split(',');
-                    options.where = {
-                        ...options.where,
-                        userId: In(creatorIds)
-                    };
-                }
-            
-            const videoContents = await videoContentRepository.find(options);
-            return videoContents;
+
+            if (query.title) {
+                options.where = { title: Like(`%${query.title}%`) };
+            }
+            options.relations = ['tags', 'protocols'];
+            const [videoContents, count] = await videoContentRepository.findAndCount(options);
+            return { count, videoContents };
         } catch (error) {
-            console.error('Error fetching video contents:', error);
-            throw error;
+            logger.error(`[VideoContentService][list] - Error : ${error}`);
+			throw error;
         }
-    }        
-    
+    }
+
     /**
      * Updates video content by ID for a given creator ID
      * @param creatorId The ID of the creator
@@ -158,8 +157,6 @@ export class VideoContentService {
             throw error;
         }
     }
-    
-    
 
     /**
      * Deletes video content by ID for a given creator ID
@@ -169,6 +166,7 @@ export class VideoContentService {
      */
     public async delete(creatorId: string, videoContentId: string): Promise<{ success: boolean } | { error: string }> {
         try {
+            logger.info(`[VideoContentService][list]  - creatorId : ${JSON.stringify(creatorId)} ,videoContentId : ${JSON.stringify(videoContentId)}`);
             const videoContent = await videoContentRepository.findOne({ where: { userId: creatorId, id: videoContentId } });
             if (!videoContent) {
                 throw new NoRecordFoundError(MESSAGES.VIDEO_NOT_EXIST);
@@ -176,8 +174,8 @@ export class VideoContentService {
             await videoContentRepository.delete(videoContentId);
             return { success: true };
         } catch (error) {
-            console.error('Error deleting video content:', error);
-            throw error;
+            logger.error(`[VideoContentService][delete] - Error : ${error}`);
+			throw error;
         }
     }
 }

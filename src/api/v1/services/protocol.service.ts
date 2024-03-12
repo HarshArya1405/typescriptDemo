@@ -3,6 +3,7 @@ import axios from 'axios';
 import { Protocol } from '../../models';
 import { FindManyOptions, Like } from 'typeorm';
 import { AppDataSource } from '../../../loaders/typeormLoader';
+import logger from '../../../util/logger';
 
 // Get repository
 const protocolRepository = AppDataSource.getRepository(Protocol);
@@ -39,7 +40,7 @@ export class ProtocolService {
 
       return { success: true };
     } catch (error) {
-      console.error('Error fetching and dumping data:', error);
+      logger.error(`[ProtocolService][fetchAndDumpData] - Error : ${error}`);
       throw error;
     }
   }
@@ -47,6 +48,7 @@ export class ProtocolService {
   // Method to list protocols with optional filters
   public async list(query: { offset: number, limit: number, nameFilter: string, categoryFilter: string }): Promise<object> {
     try {
+      logger.info(`[ProtocolService][list]  - ${JSON.stringify(query)}`);
       const options: FindManyOptions<Protocol> = {
         skip: query.offset,
         take: query.limit,
@@ -69,7 +71,7 @@ export class ProtocolService {
       const [protocols, count] = await protocolRepository.findAndCount(options);
       return { count, protocols };
     } catch (error) {
-      console.error('Error listing protocols:', error);
+      logger.error(`[ProtocolService][list] - Error : ${error}`);
       throw error;
     }
   }

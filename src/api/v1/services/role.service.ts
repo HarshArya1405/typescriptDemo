@@ -15,6 +15,7 @@ export class RoleService {
 
 	// Method to create a new role
 	public async create(data: Role): Promise<Role> {
+		logger.info(`[RoleService][create]  - ${JSON.stringify(data)}`);
 		const role = new Role();
 		role.name = data.name;
 		role.description = data.description;
@@ -50,6 +51,7 @@ export class RoleService {
 
 	// Method to update a role
 	public async update(roleId: string, data: Role): Promise<object> {
+		logger.info(`[RoleService][update]  - ${JSON.stringify(data)}`);
 		const role = await roleRepository.findOneBy({ id: roleId });
 		if (role) {
 			const roleObj = { ...role, ...data };

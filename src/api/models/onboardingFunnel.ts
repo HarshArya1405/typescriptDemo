@@ -1,6 +1,5 @@
 // Import necessary modules and types
-import { Entity, PrimaryGeneratedColumn, Column, ManyToOne, CreateDateColumn, UpdateDateColumn, BeforeUpdate } from 'typeorm';
-import { User } from './user.model';
+import { Entity, PrimaryGeneratedColumn, Column, CreateDateColumn, UpdateDateColumn, BeforeUpdate } from 'typeorm';
 import { v4 as uuidv4 } from 'uuid';
 
 // Define enum for onboarding status
@@ -38,7 +37,4 @@ export class OnBoardingFunnel {
   updateTimestamp() {
     this.updatedAt = Date.now();
   }
-
-  @ManyToOne(() => User, user => user.tags)
-  user!: User;
 }

@@ -2,12 +2,13 @@ import { Entity, PrimaryGeneratedColumn, Column , CreateDateColumn, UpdateDateCo
 import {Tag,Protocol} from './';
 import { v4 as uuidv4 } from 'uuid';
 
+
 @Entity()
 export class VideoContent {
   @PrimaryGeneratedColumn('uuid')
   id: string = uuidv4();
 
-  @Column({ nullable: true })
+  @Column({ nullable: false })
   userId: string = '';
   
   @Column({ nullable: false })
@@ -25,14 +26,6 @@ export class VideoContent {
   @Column({ nullable: false })
   personalNote: string = '';
 
-  @ManyToMany(() => Tag, { cascade: true })
-  @JoinTable()
-  tags!: Tag[];
-
-  @ManyToMany(() => Protocol, { cascade: true })
-  @JoinTable()
-  protocols!: Protocol[];
-
   @CreateDateColumn({ type: 'bigint', default: () => 'EXTRACT(EPOCH FROM NOW()) * 1000' })
   createdAt: number = Date.now();
 
@@ -43,4 +36,12 @@ export class VideoContent {
   updateTimestamp() {
     this.updatedAt = Date.now();
   }
+
+  @ManyToMany(() => Tag, { cascade: true })
+  @JoinTable()
+  tags!: Tag[];
+
+  @ManyToMany(() => Protocol, { cascade: true })
+  @JoinTable()
+  protocols!: Protocol[];
 }

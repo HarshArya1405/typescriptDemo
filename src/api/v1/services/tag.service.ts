@@ -2,6 +2,7 @@ import axios from 'axios';
 import { Tag } from '../../models';
 import { AppDataSource } from '../../../loaders/typeormLoader';
 import { Like } from 'typeorm';
+import logger from '../../../util/logger';
 
 // Get repository
 const tagRepository = AppDataSource.getRepository(Tag);
@@ -16,21 +17,20 @@ export class TagService {
     try {
       const response = await axios.get('https://api.coingecko.com/api/v3/coins/categories');
       const tagsData = response.data;
-      const tags: Tag[] = [];
 
-      await tagRepository.manager.transaction(async transactionalEntityManager => {
-        for (const tagData of tagsData) {
+      for (const tagData of tagsData) {
+        const tagExist = await tagRepository.findOneBy({ tagId: tagData.id });
+        if (!tagExist) {
           const tag = new Tag();
           tag.tagId = tagData.id;
           tag.name = tagData.name;
-          await transactionalEntityManager.save(tag);
-          tags.push(tag);
+          await tagRepository.save(tag);
         }
-      });
+      }
 
       return { success: true };
     } catch (error) {
-      console.error('Error fetching and dumping data:', error);
+      logger.error(`[TagService][fetchAndDumpData] - Error : ${error}`);
       throw error;
     }
   }
@@ -38,6 +38,7 @@ export class TagService {
   // Method to create a new tag
   public async create(name: string): Promise<Tag> {
     try {
+		  logger.info(`[TagService][create]  - ${JSON.stringify(name)}`);
       const tagId = name.toLowerCase().replace(/\s/g, '-');
       const existingTag = await tagRepository.findOne({ where: { tagId } });
 
@@ -52,7 +53,7 @@ export class TagService {
 
       return tag;
     } catch (error) {
-      console.error('Error creating tag:', error);
+      logger.error(`[TagService][create] - Error : ${error}`);
       throw error;
     }
   }
@@ -73,7 +74,7 @@ export class TagService {
       const [tags, count] = await tagRepository.findAndCount(options);
       return { count, tags };
     } catch (error) {
-      console.error('Error listing tags:', error);
+      logger.error(`[TagService][list] - Error : ${error}`);
       throw error;
     }
   }
@@ -81,37 +82,35 @@ export class TagService {
   // Method to update an existing tag
   public async update(tagId: string, newData: Partial<Tag>): Promise<{ success: boolean } | { error: string }> {
     try {
-      const result = await tagRepository.manager.transaction(async transactionalEntityManager => {
-        const tag = await transactionalEntityManager.findOne(Tag, { where: { id: tagId } });
-        if (!tag) {
-          return { error: '404' };
-        }
+		  logger.info(`[TagService][update]  - ${JSON.stringify(newData)}`);
+      const tag = await tagRepository.findOne({ where: { id: tagId } });
+      if (tag) {
         Object.assign(tag, newData);
-        await transactionalEntityManager.save(tag);
+        await tagRepository.save(tag);
         return { success: true };
-      });
-      return result;
+      } else {
+        return { error: '404' };
+      }
     } catch (error) {
-      console.error('Error updating tag:', error);
-      return { error: '500' };
+      logger.error(`[TagService][update] - Error : ${error}`);
+      throw error;
     }
   }
 
   // Method to delete a tag by ID
   public async delete(tagId: string): Promise<{ success: boolean } | { error: string }> {
     try {
-      const result = await tagRepository.manager.transaction(async transactionalEntityManager => {
-        const tag = await transactionalEntityManager.findOne(Tag, { where: { id: tagId } });
-        if (!tag) {
-          return { error: '404' };
-        }
-        await transactionalEntityManager.remove(tag);
+		  logger.info(`[TagService][delete]  - ${JSON.stringify(tagId)}`);
+      const tag = await tagRepository.findOne({ where: { id: tagId } });
+      if (tag) {
+        await tagRepository.remove(tag);
         return { success: true };
-      });
-      return result;
+      } else {
+        return { error: '404' };
+      }
     } catch (error) {
-      console.error('Error deleting tag:', error);
-      return { error: '500' };
+      logger.error(`[TagService][delete] - Error : ${error}`);
+      throw error;
     }
   }
 }

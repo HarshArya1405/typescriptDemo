@@ -2,18 +2,27 @@ import { Entity, PrimaryGeneratedColumn, Column, CreateDateColumn, UpdateDateCol
 import { v4 as uuidv4 } from 'uuid';
 
 @Entity()
-export class User {
+export class YoutubeDraft {
   @PrimaryGeneratedColumn('uuid')
   id: string = uuidv4();
 
-  @Column({ nullable: false })
+  @Column({ nullable: true })
   userId: string = '';
   
   @Column({ nullable: false })
-  platform: string = '';
-  
-  @Column({ nullable: false })
   url: string = '';
+
+  @Column({ nullable: false })
+  title: string = '';
+
+  @Column({ nullable: false })
+  description: string = '';
+
+  @Column({ nullable: false })
+  thumbnail: string = '';
+
+  @Column({ nullable: false })
+  publishedAt: string = '';
 
   @CreateDateColumn({ type: 'bigint', default: () => 'EXTRACT(EPOCH FROM NOW()) * 1000' })
   createdAt: number = Date.now();

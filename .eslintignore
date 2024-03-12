@@ -1,2 +1,3 @@
 #ignoring migration file
 src/api/migrations
+src/util/YTconnection.config.ts

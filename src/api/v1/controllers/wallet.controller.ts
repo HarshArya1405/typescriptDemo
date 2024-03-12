@@ -21,16 +21,12 @@ class CreateWalletBody extends BaseWallet {}
 // Define the query parameters for listing wallets
 class ListWalletsQuery {
   @IsNumber()
-  @IsNotEmpty()
+  @IsOptional()
   limit!: number;
 
   @IsNumber()
-  @IsNotEmpty()
-  offset!: number;
-
-  @IsString()
   @IsOptional()
-  userId!: string;
+  offset!: number;
 }
 
 // Controller for wallet endpoints
@@ -64,17 +60,14 @@ export class WalletController {
   }
 
   // List wallets
-  @Get('')
+  @Get('/:userId')
   public async listWallets(
+    @Param('userId') userId: string,
     @QueryParams() query: ListWalletsQuery
   ): Promise<object> {
     try {
-      const wallets = await this.walletService.list(query);
-
-      return {
-        count: wallets.length,
-        wallets: wallets
-      };
+      if (userId && !isUUID(userId)) throw new BadRequestParameterError(`Invalid id, UUID format expected but received ${userId}`);
+      return await this.walletService.list(userId,query);
     } catch (error) {
       console.error('Error listing wallets:', error);
       throw error;

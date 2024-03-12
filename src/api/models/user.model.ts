@@ -1,5 +1,5 @@
 import { Entity, PrimaryGeneratedColumn, Column, OneToMany, CreateDateColumn, UpdateDateColumn, BeforeUpdate, ManyToMany, JoinTable } from 'typeorm';
-import { Tag,Protocol,OnBoardingFunnel,Text, SocialHandle, Wallet } from './';
+import { Tag,Protocol, SocialHandle, Wallet } from './';
 import { v4 as uuidv4 } from 'uuid';
 
 @Entity()
@@ -35,13 +35,7 @@ export class User {
   gender: string = '';
 
   @Column({ nullable: false })
-  authOkey: string = '';
-
-  @OneToMany(() => OnBoardingFunnel, onBoardingFunnel => onBoardingFunnel.user)
-  onBoardingFunnels!: OnBoardingFunnel[];
-
-  @OneToMany(() => Text, text => text.user)
-  texts!: Text[];
+  sub: string = '';
 
   @ManyToMany(() => Tag)
   @JoinTable()

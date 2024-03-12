@@ -1,10 +1,10 @@
 // Import necessary modules and types
-import { IsNotEmpty, IsArray, IsNumber, IsNumberString, IsPositive, IsAlpha, IsOptional, IsAlphanumeric, IsEmail, IsString, IsEnum, isUUID } from 'class-validator';
+import { IsNotEmpty, IsArray, IsNumber, IsNumberString, IsPositive, IsAlpha, IsOptional, IsAlphanumeric, IsEnum, isUUID, IsString } from 'class-validator';
 import { Body, Delete, Get, JsonController, Param, Post, Put, QueryParams } from 'routing-controllers';
-import { ResponseSchema } from 'routing-controllers-openapi';
-import { User, OnBoardingFunnel, SocialHandle } from '../../models';
+import { User, OnBoardingFunnel,SocialHandle } from '../../models';
 import { UserService } from '../services/user.service';
 import { BadRequestParameterError } from '../../errors';
+import logger from '../../../util/logger';
 
 // Create an instance of the user service
 const userService = new UserService();
@@ -43,43 +43,28 @@ class BaseUser {
 class SaveTagsBody {
     @IsNotEmpty()
     @IsArray()
-    public tagIds!: number[];
+    public tagIds!: string[];
 }
 
 // Define the body for saving protocols
 class SaveProtocolsBody {
     @IsNotEmpty()
     @IsArray()
-    public protocolIds!: number[];
+    public protocolIds!: string[];
 }
 
-// Define the response schema for the user
-export class UserResponse extends BaseUser {
-    @IsString()
-    public fullName!: string;
-
-    @IsAlphanumeric()
-    public userName!: string;
-
-    @IsEmail()
-    public email!: string;
-
-    @IsAlphanumeric()
-    public phone!: string;
-
-    @IsAlpha()
-    public gender!: string;
-}
 
 // Define the body for creating a new user
-class CreateUserBody extends BaseUser {}
+class CreateUserBody extends BaseUser { }
 
 // Define the query parameters for listing users
 class GetUsersQuery {
     @IsPositive()
+    @IsOptional()
     public limit!: number;
 
     @IsNumber()
+    @IsOptional()
     public offset!: number;
 
     @IsOptional()
@@ -94,7 +79,6 @@ class GetUsersQuery {
     @IsAlphanumeric()
     public phone!: string;
 }
-
 // Enum for onboarding funnel status
 enum Status {
     Skipped = 'skipped',
@@ -126,11 +110,10 @@ class SocialHandleBody {
 @JsonController('/api/v1/user')
 export class UserController {
 
-    constructor() {}
+    constructor() { }
 
     // Create a new user
     @Post()
-    @ResponseSchema(UserResponse)
     public async create(@Body() body: CreateUserBody): Promise<object> {
         // Create a new user object from the body
         const user = new User();
@@ -148,32 +131,32 @@ export class UserController {
 
     // Get a user by ID
     @Get('/:id')
-    @ResponseSchema(UserResponse)
     public async get(@Param('id') id: string): Promise<object | null> {
+        // If 'id' is defined check if it's a valid UUID format
         if (id && !isUUID(id)) throw new BadRequestParameterError(`Invalid id, UUID format expected but received ${id}`);
-        return userService.get(id);
+        return await userService.get(id);
     }
 
     // List users based on query parameters
     @Get()
-    @ResponseSchema(UserResponse, { isArray: true })
     public async list(@QueryParams() query: GetUsersQuery): Promise<object> {
-        return userService.list(query);
+        return await userService.list(query);
     }
 
     // Update a user by ID
     @Put('/:id')
-    @ResponseSchema(UserResponse)
     public async update(@Param('id') id: string, @Body() body: Partial<User>): Promise<object> {
+        // If 'id' is defined check if it's a valid UUID format
         if (id && !isUUID(id)) throw new BadRequestParameterError(`Invalid id, UUID format expected but received ${id}`);
-        return userService.update(id, body);
+        return await userService.update(id, body);
     }
 
     // Delete a user by ID
     @Delete('/:id')
     public async delete(@Param('id') id: string): Promise<object> {
+        // If 'id' is defined check if it's a valid UUID format
         if (id && !isUUID(id)) throw new BadRequestParameterError(`Invalid id, UUID format expected but received ${id}`);
-        return userService.delete(id);
+        return await userService.delete(id);
     }
 
     // Tag and protocol APIs
@@ -181,46 +164,52 @@ export class UserController {
     // Save tags for a user
     @Post('/:userId/tags')
     public async saveTags(@Param('userId') userId: string, @Body() body: SaveTagsBody): Promise<User> {
-        if (userId && !isUUID(userId)) throw new BadRequestParameterError(`Invalid id, UUID format expected but received ${userId}`);
+        // If 'id' is defined check if it's a valid UUID format
+        if (userId && !isUUID(userId)) throw new BadRequestParameterError(`Invalid userId, UUID format expected but received ${userId}`);
         const { tagIds } = body;
-        return userService.saveTags(userId, tagIds);
+        return await userService.saveTags(userId, tagIds);
     }
 
     // Update tags for a user
     @Put('/:userId/tags')
     public async updateTags(@Param('userId') userId: string, @Body() body: SaveTagsBody): Promise<User> {
-        if (userId && !isUUID(userId)) throw new BadRequestParameterError(`Invalid id, UUID format expected but received ${userId}`);
+        // If 'id' is defined check if it's a valid UUID format
+        if (userId && !isUUID(userId)) throw new BadRequestParameterError(`Invalid userId, UUID format expected but received ${userId}`);
         const { tagIds } = body;
-        return userService.updateTags(userId, tagIds);
+        return await userService.updateTags(userId, tagIds);
     }
 
     // List tags for a user
     @Get('/:userId/tags')
     public async listTags(@Param('userId') userId: string): Promise<User> {
-        if (userId && !isUUID(userId)) throw new BadRequestParameterError(`Invalid id, UUID format expected but received ${userId}`);
+        // If 'id' is defined check if it's a valid UUID format
+        if (userId && !isUUID(userId)) throw new BadRequestParameterError(`Invalid userId, UUID format expected but received ${userId}`);
         return await userService.listTags(userId);
     }
 
     // Save protocols for a user
     @Post('/:userId/protocols')
     public async saveUserProtocols(@Param('userId') userId: string, @Body() body: SaveProtocolsBody): Promise<User> {
-        if (userId && !isUUID(userId)) throw new BadRequestParameterError(`Invalid id, UUID format expected but received ${userId}`);
+        // If 'id' is defined check if it's a valid UUID format
+        if (userId && !isUUID(userId)) throw new BadRequestParameterError(`Invalid userId, UUID format expected but received ${userId}`);
         const { protocolIds } = body;
-        return userService.saveProtocols(userId, protocolIds);
+        return await userService.saveProtocols(userId, protocolIds);
     }
 
     // Update protocols for a user
     @Put('/:userId/protocols')
     public async updateProtocols(@Param('userId') userId: string, @Body() body: SaveProtocolsBody): Promise<User> {
-        if (userId && !isUUID(userId)) throw new BadRequestParameterError(`Invalid id, UUID format expected but received ${userId}`);
+        // If 'id' is defined check if it's a valid UUID format
+        if (userId && !isUUID(userId)) throw new BadRequestParameterError(`Invalid userId, UUID format expected but received ${userId}`);
         const { protocolIds } = body;
-        return userService.updateProtocols(userId, protocolIds);
+        return await userService.updateProtocols(userId, protocolIds);
     }
 
     // List protocols for a user
     @Get('/:userId/protocols')
     public async listProtocols(@Param('userId') userId: string): Promise<User> {
-        if (userId && !isUUID(userId)) throw new BadRequestParameterError(`Invalid id, UUID format expected but received ${userId}`);
+        // If 'id' is defined check if it's a valid UUID format
+        if (userId && !isUUID(userId)) throw new BadRequestParameterError(`Invalid userId, UUID format expected but received ${userId}`);
         return await userService.listProtocols(userId);
     }
 
@@ -229,29 +218,46 @@ export class UserController {
     // Set onboard funnel for a user
     @Post('/:userId/onboardFunnel')
     public async setOnboardFunnel(@Param('userId') userId: string, @Body() body: OnboardFunnelBody): Promise<OnBoardingFunnel | undefined> {
-        if (userId && !isUUID(userId)) throw new BadRequestParameterError(`Invalid id, UUID format expected but received ${userId}`);
-        return userService.setOnboardFunnel(userId, body.stage, body.status);
+        // If 'id' is defined check if it's a valid UUID format
+        if (userId && !isUUID(userId)) throw new BadRequestParameterError(`Invalid userId, UUID format expected but received ${userId}`);
+        return await userService.setOnboardFunnel(userId, body.stage, body.status);
     }
 
     // Get onboard funnel for a user
     @Get('/:userId/onboardFunnel')
     public async getOnboardFunnel(@Param('userId') userId: string): Promise<object> {
-        if (userId && !isUUID(userId)) throw new BadRequestParameterError(`Invalid id, UUID format expected but received ${userId}`);
-        return userService.getOnboardFunnel(userId);
+        // If 'id' is defined check if it's a valid UUID format
+        if (userId && !isUUID(userId)) throw new BadRequestParameterError(`Invalid userId, UUID format expected but received ${userId}`);
+        return await userService.getOnboardFunnel(userId);
     }
 
+
     // Create or update a user's social handle
-    @Post('/:userId/SocialHandle')
-    public async createOrUpdateSocialHandle(@Param('userId') userId: string, @Body() body: SocialHandleBody): Promise<SocialHandle> {
+    
+    @Post('/:userId/socialHandle')
+    public async createSocialHandles(@Param('userId') userId: string, @Body() body: []): Promise<object> {
         if (userId && !isUUID(userId)) throw new BadRequestParameterError(`Invalid id, UUID format expected but received ${userId}`);
-        const { url, platform } = body;
-        return userService.createOrUpdateSocialHandle(userId, platform, url);
+        for(const row of body){
+            await this.createOrUpdateSocialHandle(userId,row);
+        }
+        return {success:true};
+    }
+
+    @Post('/:userId/saveSocialHandle')
+    public async createOrUpdateSocialHandle(@Param('userId') userId: string, @Body() body: SocialHandleBody): Promise<SocialHandle | undefined> {
+        if (userId && !isUUID(userId)) throw new BadRequestParameterError(`Invalid id, UUID format expected but received ${userId}`);
+        try {
+            return await userService.createOrUpdateSocialHandle(userId, body.url,body.platform);
+        } catch (error) {
+            logger.error(`[UserController][createOrUpdateSocialHandle] - Error : ${error}`);
+			throw error;
+        }
     }
 
     // Get a user's social handles
-    @Get('/:userId/SocialHandle')
+    @Get('/:userId/socialHandle')
     public async getSocialHandles(@Param('userId') userId: string): Promise<SocialHandle[]> {
         if (userId && !isUUID(userId)) throw new BadRequestParameterError(`Invalid id, UUID format expected but received ${userId}`);
-        return userService.getSocialHandles(userId);
+        return await userService.getSocialHandles(userId);
     }
 }

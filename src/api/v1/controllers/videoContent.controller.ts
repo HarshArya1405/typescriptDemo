@@ -5,11 +5,6 @@ import { ResponseSchema } from 'routing-controllers-openapi';
 import { VideoContentService } from '../services/videoContent.service';
 import { IsAlphanumeric, IsArray, IsNotEmpty, IsNumber, IsOptional, IsString, isUUID } from 'class-validator';
 import { BadRequestParameterError } from '../../errors';
-import { In } from 'typeorm';
-import { AppDataSource } from '../../../loaders/typeormLoader';
-
-const tagRepository = AppDataSource.getRepository(Tag);
-const protocolRepository = AppDataSource.getRepository(Protocol);
 
 // Define the base video content class with common properties
 class BaseVideoContent {
@@ -28,14 +23,6 @@ class BaseVideoContent {
   thumbnail!: string;
 
   @IsOptional()
-  @IsNumber()
-  upVOte!: number;
-
-  @IsOptional()
-  @IsNumber()
-  downVote!: number;
-
-  @IsOptional()
   @IsString()
   personalNote!: string;
 
@@ -44,7 +31,7 @@ class BaseVideoContent {
   tags!: Tag[];
 
   @IsOptional()
-  @IsArray()
+  @IsNumber()
   protocols!: Protocol[];
 }
 
@@ -54,22 +41,19 @@ class CreateVideoContentBody extends BaseVideoContent {}
 // Define the query parameters for listing video contents
 class ListVideoContentsQuery {
   @IsNumber()
-  @IsNotEmpty()
+  @IsOptional()
   limit!: number;
 
   @IsNumber()
-  @IsNotEmpty()
+  @IsOptional()
   offset!: number;
 
   @IsOptional()
   title!: string;
-
-  @IsOptional()
-  creatorIds!: string;
 }
 
 // Controller for video content endpoints
-@JsonController('/api/v1/videoContent')
+@JsonController('/api/v1')
 export class VideoContentController {
 
   private videoContentService: VideoContentService;
@@ -79,17 +63,19 @@ export class VideoContentController {
   }
 
   // Import video content
-  @Post('/import/:creatorId')
+  @Post('/creator/:creatorId/videoContent/import')
   @ResponseSchema(VideoContent)
   public async import(
     @Param('creatorId') creatorId: string,
-    @Body() body: { videoContent: [] }
-  ): Promise<object> {
-    try {
-      for (const row of body.videoContent) {
-        await this.createVideoContent(creatorId, row);
-      }
-      return { success: true };
+    @Body() body: {videoContent:[]}
+    ): Promise<object> {
+      try {
+        // If 'id' is defined check if it's a valid UUID format
+        if (creatorId && !isUUID(creatorId)) throw new BadRequestParameterError(`Invalid creatorId, UUID format expected but received ${creatorId}`);
+        for(const row of body.videoContent){
+          await this.createVideoContent(creatorId,row);
+        }
+        return {success:true};
     } catch (error) {
       console.error('Error creating tag:', error);
       throw error;
@@ -97,91 +83,73 @@ export class VideoContentController {
   }
 
   // Create video content
-  @Post('/:creatorId')
+  @Post('/creator/:creatorId/videoContent')
   @ResponseSchema(VideoContent)
   public async createVideoContent(
     @Param('creatorId') creatorId: string,
     @Body() body: CreateVideoContentBody
-  ): Promise<VideoContent> {
-    try {
-      const videoContent = new VideoContent();
-      videoContent.url = body.url;
-      videoContent.title = body.title;
-      videoContent.userId = creatorId;
-      videoContent.description = body.description;
-      videoContent.thumbnail = body.thumbnail;
-      videoContent.personalNote = body.personalNote;
-
-      // Fetch tags based on provided tag IDs
-      const tags = await tagRepository.find({ where: { id: In(body.tags) } });
-      videoContent.tags = tags;
-
-      // Fetch protocols based on provided protocol IDs
-      const protocols = await protocolRepository.find({ where: { id: In(body.protocols) } });
-      videoContent.protocols = protocols;
-
-      return await this.videoContentService.create(creatorId, videoContent);
+    ): Promise<VideoContent> {
+      try {
+         // If 'id' is defined check if it's a valid UUID format
+         if (creatorId && !isUUID(creatorId)) throw new BadRequestParameterError(`Invalid creatorId, UUID format expected but received ${creatorId}`);
+        const videoContent = new VideoContent();
+        // videoContent = { ...videoContent,userId:creatorId,...body}
+        videoContent.url = body.url;
+        videoContent.title = body.title;
+        videoContent.userId = creatorId;
+        videoContent.description = body.description;
+        videoContent.thumbnail = body.thumbnail;
+        videoContent.personalNote = body.personalNote;
+        videoContent.tags = body.tags;
+        videoContent.protocols = body.protocols;
+        return await this.videoContentService.create(creatorId,videoContent);
     } catch (error) {
-      console.error('Error creating video content:', error);
+      console.error('Error creating tag:', error);
       throw error;
     }
   }
 
   // List video contents
-  @Get('')
+  @Get('/creator/videoContents')
   public async list(
-      @QueryParams() query: ListVideoContentsQuery,
-      //@QueryParam('creatorId') creatorId: string
+    @Param('creatorId') creatorId: string,
+    @QueryParams() query: ListVideoContentsQuery
   ): Promise<object> {
-      try {
-          // Pass creatorId and query to service function
-          const videoContents = await this.videoContentService.list(query);
-
-          // Return the result in the desired format
-          return {
-              count: videoContents.length,
-              videoContents: videoContents
-          };
-      } catch (error) {
-          console.error('Error listing video content:', error);
-          throw error;
-      }
+     // If 'id' is defined check if it's a valid UUID format
+     if (creatorId && !isUUID(creatorId)) throw new BadRequestParameterError(`Invalid creatorId, UUID format expected but received ${creatorId}`);
+    return await this.videoContentService.list(creatorId, query);
   }
 
   // Get video content by ID
-  @Get('/:creatorId/:id')
+  @Get('/creator/:creatorId/videoContent/:id')
   public async get(
     @Param('creatorId') creatorId: string,
     @Param('id') id: string
-  ): Promise<VideoContent> {
+    ): Promise<VideoContent> {
     try {
-      if (id && !isUUID(id)) throw new BadRequestParameterError(`Invalid id, UUID format expected but received ${id}`);
-      const result = await this.videoContentService.get(creatorId, id);
+       // If 'id' is defined check if it's a valid UUID format
+       if (creatorId && !isUUID(creatorId)) throw new BadRequestParameterError(`Invalid creatorId, UUID format expected but received ${creatorId}`);
+       if (id && !isUUID(id)) throw new BadRequestParameterError(`Invalid videoContent, UUID format expected but received ${id}`);
+      const result = await this.videoContentService.get(creatorId,id);
       return result;
     } catch (error) {
       console.error('Error updating tag:', error);
       throw error;
     }
   }
+
   // Update video content by ID
-  @Put('/:creatorId/:id')
+  @Put('/creator/:creatorId/videoContent/:id')
   public async update(
     @Param('creatorId') creatorId: string,
     @Param('id') id: string,
-    @Body() newData: BaseVideoContent
-  ): Promise<VideoContent> {
+    @Body() newData: BaseVideoContent 
+    ): Promise<VideoContent> {
     try {
-      if (id && !isUUID(id)) throw new BadRequestParameterError(`Invalid id, UUID format expected but received ${id}`);
-      const result = await this.videoContentService.update(creatorId, id, newData);
-
-      // Fetch tags based on provided tag IDs
-      const tags = await tagRepository.find({ where: { id: In(newData.tags) } });
-      result.tags = tags;
-
-      // Fetch protocols based on provided protocol IDs
-      const protocols = await protocolRepository.find({ where: { id: In(newData.protocols) } });
-      result.protocols = protocols;
-
+       // If 'id' is defined check if it's a valid UUID format
+      if (creatorId && !isUUID(creatorId)) throw new BadRequestParameterError(`Invalid creatorId, UUID format expected but received ${creatorId}`);
+      if (id && !isUUID(id)) throw new BadRequestParameterError(`Invalid videoContent, UUID format expected but received ${id}`);
+      const result = await this.videoContentService.update(creatorId,id, newData);
       return result;
     } catch (error) {
       console.error('Error updating tag:', error);
@@ -190,14 +158,16 @@ export class VideoContentController {
   }
 
   // Delete video content by ID
-  @Delete('/:creatorId/:id')
+  @Delete('/creator/:creatorId/videoContent/:id')
   public async delete(
     @Param('id') id: string,
     @Param('creatorId') creatorId: string
-  ): Promise<{ success: boolean } | { error: string }> {
+    ): Promise<{ success: boolean } | { error: string }> {
     try {
-      if (id && !isUUID(id)) throw new BadRequestParameterError(`Invalid id, UUID format expected but received ${id}`);
-      const result = await this.videoContentService.delete(creatorId, id);
+      // If 'id' is defined check if it's a valid UUID format
+      if (creatorId && !isUUID(creatorId)) throw new BadRequestParameterError(`Invalid creatorId, UUID format expected but received ${creatorId}`);
+      if (id && !isUUID(id)) throw new BadRequestParameterError(`Invalid videoContent, UUID format expected but received ${id}`);
+      const result = await this.videoContentService.delete(creatorId,id);
       return result;
     } catch (error) {
       console.error('Error deleting tag:', error);

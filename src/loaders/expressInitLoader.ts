@@ -1,10 +1,7 @@
 import { MicroframeworkLoader, MicroframeworkSettings } from 'microframework-w3tec';
 import { createExpressServer } from 'routing-controllers';
-import { UserController, RoleController, ProtocolController, TagController, AuthenticationController, VideoContentController } from '../api/v1/controllers';
+import { UserController, RoleController, ProtocolController, TagController, AuthenticationController, VideoContentController, VoteController, YoutubeController, WalletController } from '../api/v1/controllers';
 import Server from '../app';
-import { TextContentController } from '../api/v1/controllers/text.controller';
-import { VoteController } from '../api/v1/controllers/vote.controller';
-import { WalletController } from '../api/v1/controllers/wallet.controller';
 
 // Define a loader for initializing Express server with routing-controllers
 export const expressInitLoader: MicroframeworkLoader = (settings?: MicroframeworkSettings) => {
@@ -18,8 +15,8 @@ export const expressInitLoader: MicroframeworkLoader = (settings?: Microframewor
       TagController,
       AuthenticationController,
       VideoContentController,
-      TextContentController,
       VoteController,
+      YoutubeController,
       WalletController
     ],
   });
