@@ -3,7 +3,7 @@ import dotenv from 'dotenv';
 dotenv.config(); 
 import './src/loaders/typeormLoader';
 import { bootstrapMicroframework, MicroframeworkBootstrapConfig } from 'microframework-w3tec';
-import { expressInitLoader,auth0Loader,baseLoader, expressServeLoader} from './src/loaders';
+import { expressInitLoader,auth0Loader,baseLoader, expressServeLoader, swaggerLoader} from './src/loaders';
 import logger from './src/util/logger';
 
 const config: MicroframeworkBootstrapConfig = {
@@ -12,6 +12,7 @@ const config: MicroframeworkBootstrapConfig = {
     expressInitLoader,
     auth0Loader,
     expressServeLoader,
+    swaggerLoader,
     // Add any other loaders you need here
   ],
   // Other configuration options can be added here
