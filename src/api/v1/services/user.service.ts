@@ -1,5 +1,5 @@
 import { Service } from 'typedi';
-import { User, Protocol, Tag, OnBoardingFunnel, SocialHandle, Wallet } from '../../models';
+import { User, Protocol, Tag, OnBoardingFunnel, SocialHandle, Wallet, auth0User } from '../../models';
 import { AppDataSource } from '../../../loaders/typeormLoader';
 import { DuplicateRecordFoundError, NoRecordFoundError } from '../../errors';
 import { MESSAGES } from '../../constants/messages';
@@ -9,9 +9,11 @@ import { WalletService } from './wallet.service';
 import axios from 'axios';
 import AnalyticsService from '../../../util/mixPanel.config';
 import { getIPAddress } from '../../../util/appUtils';
+import { AuthService } from './auth0User.service';
 
 const analyticsService = new AnalyticsService();//class object
 const walletService = new WalletService();
+const authService = new AuthService();
 
 // Get repositories
 const tagRepository = AppDataSource.getRepository(Tag);
@@ -20,6 +22,7 @@ const walletRepository = AppDataSource.getRepository(Wallet);
 const userRepository = AppDataSource.getRepository(User);
 const onBoardingFunnelRepository = AppDataSource.getRepository(OnBoardingFunnel);
 const socialHandleRepository = AppDataSource.getRepository(SocialHandle);
+const auth0UserRepository = AppDataSource.getRepository(auth0User);
 
 // Interface for user data
 interface UserData {
@@ -372,7 +375,7 @@ export class UserService {
 		public async checkUser(data: UserData): Promise<object | null> {
 			let userId: string = '';
 			let userExist: boolean = false;
-	
+		
 			// Check user existence by sub
 			if (data.sub) {
 				const userauthkeyExist = await userRepository.findOne({
@@ -384,7 +387,7 @@ export class UserService {
 					// await this.linkUser(userauthkeyExist.sub, data.sub);
 				}
 			}
-	
+		
 			// Check user existence by email
 			if (data.email) {
 				const userEmailExist = await userRepository.findOne({
@@ -393,10 +396,21 @@ export class UserService {
 				if (userEmailExist) {
 					userExist = true;
 					userId = userEmailExist.id;
+		
+					// Update auth0User entry with userId if it was previously created
+					const existingAuth0User = await auth0UserRepository.findOne({
+						where: { email: data.email }
+					});
+					if (existingAuth0User && !existingAuth0User.userId) {
+						existingAuth0User.userId = userId;
+						await auth0UserRepository.save(existingAuth0User);
+					}
 					// await this.linkUser(userEmailExist.sub, data.sub);
 				}
 			}
-	
+
+			let isAuth0User: boolean = false;
+		
 			// Create new user if not found
 			if (!userExist) {
 				const newUser = new User();
@@ -410,18 +424,32 @@ export class UserService {
 				newUser.biography = data.biography;
 				newUser.role = data.role;
 				newUser.sub = data.sub;
-				await this.create(newUser);
-				userId = newUser.id;
-				// Fetch IP address of the current user
-				const ip = await getIPAddress();
-				//Create User for mixpanel
-				analyticsService.setUser(newUser.id, ip);  
-			}
-	
+			
+				// Creating the user
+				const createdUser = await authService.createAuth0User(newUser);
+				
+				if (createdUser) {
+					if('userId' in createdUser){
+						isAuth0User = true;
+					}
+					userId = createdUser.id;
+			
+					// Fetch IP address of the current user
+					const ip = await getIPAddress();
+					//Create User for mixpanel
+					analyticsService.setUser(createdUser.id, ip);  
+				} else {
+					// Handle the case where user creation failed
+					throw new Error('User creation failed');
+				}
+			}			
 			// Get and return user data
-			const user = await this.get(userId);
-			return user;
-		}
+			if(isAuth0User){
+				return await authService.get(userId);
+			} else {
+				return await this.get(userId);
+			}
+		}		
 
 		// public async checkUserLink(data: UserData): Promise<object | null> {
 		// 	const userId: string |undefined = data.id;
