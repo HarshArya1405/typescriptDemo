@@ -1,11 +1,14 @@
 import { Entity, PrimaryGeneratedColumn, Column, OneToMany, CreateDateColumn, UpdateDateColumn, BeforeUpdate, ManyToMany, JoinTable } from 'typeorm';
-import { Tag,Protocol, SocialHandle, Wallet } from './';
+import { Tag,Protocol, SocialHandle, Wallet, auth0User } from './';
 import { v4 as uuidv4 } from 'uuid';
 
 @Entity()
 export class User {
   @PrimaryGeneratedColumn('uuid')
   id: string = uuidv4();
+
+  @Column({ nullable: true })
+  auth0UserId?: string;
 
   @Column({ nullable: true })
   fullName: string = '';
@@ -50,6 +53,9 @@ export class User {
 
   @OneToMany(() => Wallet, wallet => wallet.user)
   wallets!: Wallet[];
+
+  @OneToMany(() => auth0User, auth0User => auth0User.user)
+  auth0Users!: auth0User[];
 
   @CreateDateColumn({ type: 'bigint', default: () => 'EXTRACT(EPOCH FROM NOW()) * 1000' })
   createdAt: number = Date.now();
