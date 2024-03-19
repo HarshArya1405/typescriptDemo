@@ -8,7 +8,7 @@ import { AppDataSource } from '../loaders/typeormLoader';
 const userRepository = AppDataSource.getRepository(User);
 
 const mixpanelConfig = ENV.mixpanel;
-const mixpanelToken = mixpanelConfig?.token || ''; // Provide a default empty string if mixpanelConfig?.token is undefined
+const mixpanelToken = mixpanelConfig?.token || '';
 const mixpanel = Mixpanel.init(mixpanelToken);
 
 
@@ -16,7 +16,6 @@ interface MixpanelUserParams {
     '$first_name'?: string;
     '$email'?: string;
     '$phone'?: string;
-    'role'?: string;
     'ip'?: string;
 }
 
@@ -62,7 +61,6 @@ class AnalyticsService {
                     '$first_name': user.fullName,
                     '$email': user.email,
                     '$phone': user.phone,
-                    'role': user.role,
                 };
                 if (ip) {
                     params.ip = ip;
