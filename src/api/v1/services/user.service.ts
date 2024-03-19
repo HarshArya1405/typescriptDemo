@@ -1,18 +1,17 @@
 import { Service } from 'typedi';
-import { User, Protocol, Tag, OnBoardingFunnel, SocialHandle, Wallet, auth0User } from '../../models';
+import { User, Protocol, Tag, OnBoardingFunnel, SocialHandle, Wallet, Auth0User } from '../../models';
 import { AppDataSource } from '../../../loaders/typeormLoader';
 import { DuplicateRecordFoundError, NoRecordFoundError } from '../../errors';
 import { MESSAGES } from '../../constants/messages';
 import { FindManyOptions, In, Like } from 'typeorm';
 import logger from '../../../util/logger';
-import { WalletService } from './wallet.service';
+//import { WalletService } from './wallet.service';
 import axios from 'axios';
 import AnalyticsService from '../../../util/mixPanel.config';
-import { getIPAddress } from '../../../util/appUtils';
 import { AuthService } from './auth0User.service';
 
 const analyticsService = new AnalyticsService();//class object
-const walletService = new WalletService();
+//const walletService = new WalletService();
 const authService = new AuthService();
 
 // Get repositories
@@ -22,12 +21,12 @@ const walletRepository = AppDataSource.getRepository(Wallet);
 const userRepository = AppDataSource.getRepository(User);
 const onBoardingFunnelRepository = AppDataSource.getRepository(OnBoardingFunnel);
 const socialHandleRepository = AppDataSource.getRepository(SocialHandle);
-const auth0UserRepository = AppDataSource.getRepository(auth0User);
+const auth0UserRepository = AppDataSource.getRepository(Auth0User);
 
 // Interface for user data
 interface UserData {
 	id?:string,
-	sub: string;
+	sub:string,
 	fullName: string;
 	userName: string;
 	email: string;
@@ -39,49 +38,50 @@ interface UserData {
 	role: string;
 	// Add any other properties if necessary
 }
+
 // Service class for User
 @Service()
 export class UserService {
 	constructor() {}
 
-	// Method to create a new user
-	public async create(data: User): Promise<object> {
-		try {
-			logger.info(`[UserService][create]  - ${JSON.stringify(data)}`);
-			const userObj = { ...data };
-			if(userObj.email){
-				const userEmailExist = await userRepository.findOneBy({
-					email: userObj.email,
-				});
-				if (userEmailExist) {
-					throw new DuplicateRecordFoundError(MESSAGES.USER_EMAIL_EXIST);
-				}
-			}
-			let subSptit :string[]=[];
-			const user = await userRepository.save(userObj);
-			if(data.sub){
-				subSptit = data.sub.split('|');
-				// checking if user is onboarding through wallet
-				if(subSptit[1] === 'siwe'){
-					const addressSplit = subSptit[2].split('0x');
-					const address = `0x${addressSplit}`;
-					const wallet  = new Wallet();
-					wallet.address  = address;
-					wallet.userId  = user.id;
-					await walletService.create(user.id,wallet);
-				}
-			}
-			try {
-				await analyticsService.track('User Created', JSON.stringify({ userId: user.id }), user.id);
-			} catch (err) {
-				logger.log('error', `Error tracking user creation: ${err}`);
-			}
-			return user;
-		} catch (error) {
-			logger.error(`[UserService][create] - Error : ${error}`);
-			throw error;
-		}
-	}
+	// // Method to create a new user
+	// public async create(data: User): Promise<object> {
+	// 	try {
+	// 		logger.info(`[UserService][create]  - ${JSON.stringify(data)}`);
+	// 		const userObj = { ...data };
+	// 		if(userObj.email){
+	// 			const userEmailExist = await userRepository.findOneBy({
+	// 				email: userObj.email,
+	// 			});
+	// 			if (userEmailExist) {
+	// 				throw new DuplicateRecordFoundError(MESSAGES.USER_EMAIL_EXIST);
+	// 			}
+	// 		}
+	// 		let subSptit :string[]=[];
+	// 		const user = await userRepository.save(userObj);
+	// 		if(data.sub){
+	// 			subSptit = data.sub.split('|');
+	// 			// checking if user is onboarding through wallet
+	// 			if(subSptit[1] === 'siwe'){
+	// 				const addressSplit = subSptit[2].split('0x');
+	// 				const address = `0x${addressSplit}`;
+	// 				const wallet  = new Wallet();
+	// 				wallet.address  = address;
+	// 				wallet.userId  = user.id;
+	// 				await walletService.create(user.id,wallet);
+	// 			}
+	// 		}
+	// 		try {
+	// 			await analyticsService.track('User Created', JSON.stringify({ userId: user.id }), user.id);
+	// 		} catch (err) {
+	// 			logger.log('error', `Error tracking user creation: ${err}`);
+	// 		}
+	// 		return user;
+	// 	} catch (error) {
+	// 		logger.error(`[UserService][create] - Error : ${error}`);
+	// 		throw error;
+	// 	}
+	// }
 
 	// Method to list users with optional search parameters
 	public async list(searchParams: { userName?: string, email?: string, phone?: string,limit?: number,offset?: number }): Promise<object> {
@@ -117,6 +117,7 @@ export class UserService {
 			if(userId){
 				const user = await userRepository.findOne({
 					where: { id: userId },
+					relations: ['roles']
 				});
 				if (!user) {
 					throw new NoRecordFoundError(MESSAGES.USER_NOT_EXIST);
@@ -374,81 +375,32 @@ export class UserService {
 
 		public async checkUser(data: UserData): Promise<object | null> {
 			let userId: string = '';
-			let userExist: boolean = false;
 		
 			// Check user existence by sub
 			if (data.sub) {
-				const userauthkeyExist = await userRepository.findOne({
-					where: { sub: data.sub }
-				});
-				if (userauthkeyExist) {
-					userExist = true;
-					userId = userauthkeyExist.id;
-					// await this.linkUser(userauthkeyExist.sub, data.sub);
+				const userAuth0 = await auth0UserRepository.findOne({ where: { sub: data.sub } });
+				if (userAuth0) {
+					userId = userAuth0.userId;
 				}
 			}
 		
-			// Check user existence by email
-			if (data.email) {
-				const userEmailExist = await userRepository.findOne({
-					where: { email: data.email }
-				});
-				if (userEmailExist) {
-					userExist = true;
-					userId = userEmailExist.id;
-		
-					// Update auth0User entry with userId if it was previously created
-					const existingAuth0User = await auth0UserRepository.findOne({
-						where: { email: data.email }
-					});
-					if (existingAuth0User && !existingAuth0User.userId) {
-						existingAuth0User.userId = userId;
-						await auth0UserRepository.save(existingAuth0User);
-					}
-					// await this.linkUser(userEmailExist.sub, data.sub);
-				}
-			}
-
-			let isAuth0User: boolean = false;
-		
-			// Create new user if not found
-			if (!userExist) {
-				const newUser = new User();
-				newUser.fullName = data.fullName;
-				newUser.userName = data.userName;
-				newUser.email = data.email;
-				newUser.phone = data.phone;
-				newUser.gender = data.gender;
-				newUser.profilePicture = data.profilePicture;
-				newUser.title = data.title;
-				newUser.biography = data.biography;
-				newUser.role = data.role;
-				newUser.sub = data.sub;
-			
-				// Creating the user
-				const createdUser = await authService.createAuth0User(newUser);
+			// If user doesn't exist, create new user
+			if (!userId) {
 				
+		
+				// Creating the user
+				const createdUser = await authService.createAuth0User(data);
+		
 				if (createdUser) {
-					if('userId' in createdUser){
-						isAuth0User = true;
-					}
 					userId = createdUser.id;
-			
-					// Fetch IP address of the current user
-					const ip = await getIPAddress();
-					//Create User for mixpanel
-					analyticsService.setUser(createdUser.id, ip);  
 				} else {
 					// Handle the case where user creation failed
 					throw new Error('User creation failed');
 				}
-			}			
-			// Get and return user data
-			if(isAuth0User){
-				return await authService.get(userId);
-			} else {
-				return await this.get(userId);
 			}
+		
+			// Fetch and return user data
+			return await this.get(userId);
 		}		
 
 		// public async checkUserLink(data: UserData): Promise<object | null> {
