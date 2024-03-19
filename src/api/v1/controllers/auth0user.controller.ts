@@ -1,7 +1,7 @@
 import { IsPositive, IsAlphanumeric, IsOptional, isUUID } from 'class-validator';
 import { Body, Get, JsonController, Param, Put, QueryParams } from 'routing-controllers';
 import { AuthService } from '../services/auth0User.service';
-import { User, auth0User } from '../../models';
+import { User, Auth0User } from '../../models';
 import { BadRequestParameterError } from '../../errors';
 
 // Create an instance of the authentication service
@@ -41,7 +41,6 @@ interface UserData {
     biography: string;
     userId: string;
     sub: string;
-    role: string;
 }
 
 // Controller for user endpoints
@@ -79,7 +78,7 @@ export class AuthUserController {
      * @returns Updated user
      */
     @Put('/:id')
-    public async update(@Param('id') id: string, @Body() body: Partial<UserData>): Promise<User | auth0User | null> {
+    public async update(@Param('id') id: string, @Body() body: Partial<UserData>): Promise<User | Auth0User | null> {
         // If 'id' is defined check if it's a valid UUID format
         if (id && !isUUID(id)) throw new BadRequestParameterError(`Invalid id, UUID format expected but received ${id}`);
         return await authService.updateAuth0User(id, body as UserData); // Cast body as UserData
