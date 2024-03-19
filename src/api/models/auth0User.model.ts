@@ -3,7 +3,7 @@ import { v4 as uuidv4 } from 'uuid';
 import { User } from './user.model';
 
 @Entity()
-export class auth0User {
+export class Auth0User {
   @PrimaryGeneratedColumn('uuid')
   id: string = uuidv4();
 
@@ -30,9 +30,6 @@ export class auth0User {
 
   @Column({ nullable: true })
   biography: string = '';
-
-  @Column({ nullable: false })
-  role: string = '';
 
   @Column({ nullable: true })
   gender: string = '';
