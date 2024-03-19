@@ -8,4 +8,4 @@ export { SocialHandle } from './socialHandle.model';
 export { YoutubeDraft } from './youtubeDraft.model';
 export { YoutubeUserToken } from './youtubeUserToken.model';
 export { Wallet } from './wallet.model';
-export { auth0User } from './auth0User.model';
+export { Auth0User } from './auth0User.model';
