@@ -1,19 +1,22 @@
 import { Service } from 'typedi';
-import { User, Protocol, Tag, OnBoardingFunnel, SocialHandle, Wallet, Auth0User } from '../../models';
+import { Role, User, Protocol, Tag, OnBoardingFunnel, SocialHandle, Wallet, Auth0User } from '../../models';
 import { AppDataSource } from '../../../loaders/typeormLoader';
 import { DuplicateRecordFoundError, NoRecordFoundError } from '../../errors';
 import { MESSAGES } from '../../constants/messages';
 import { FindManyOptions, In, Like } from 'typeorm';
 import logger from '../../../util/logger';
-//import { WalletService } from './wallet.service';
+import { WalletService } from './wallet.service';
 import axios from 'axios';
 import AnalyticsService from '../../../util/mixPanel.config';
+// import { getIPAddress } from '../../../util/appUtils';
+import { getSignedUrlForRead } from '../../../util/s3Utils';
 import { AuthService } from './auth0User.service';
+// import { UserEventEmitter } from '../../../events/EventEmitters';
 
 const analyticsService = new AnalyticsService();//class object
-//const walletService = new WalletService();
 const authService = new AuthService();
-
+const walletService = new WalletService();
+// const userEventEmitter = new UserEventEmitter();
 // Get repositories
 const tagRepository = AppDataSource.getRepository(Tag);
 const protocolRepository = AppDataSource.getRepository(Protocol);
@@ -22,11 +25,14 @@ const userRepository = AppDataSource.getRepository(User);
 const onBoardingFunnelRepository = AppDataSource.getRepository(OnBoardingFunnel);
 const socialHandleRepository = AppDataSource.getRepository(SocialHandle);
 const auth0UserRepository = AppDataSource.getRepository(Auth0User);
+const roleRepository = AppDataSource.getRepository(Role);
+
+
 
 // Interface for user data
 interface UserData {
-	id?:string,
-	sub:string,
+	id?: string,
+	sub: string;
 	fullName: string;
 	userName: string;
 	email: string;
@@ -38,53 +44,76 @@ interface UserData {
 	role: string;
 	// Add any other properties if necessary
 }
+interface UserDataResponse {
+	id?: string,
+	fullName: string;
+	userName: string;
+	email: string;
+	phone: string;
+	gender: string;
+	profilePicture: object;
+	title: string;
+	biography: string;
+	onBoardingFunnels: object
+	wallets: Wallet[]
 
+	// Add any other properties if necessary
+}
 // Service class for User
 @Service()
 export class UserService {
-	constructor() {}
+	constructor() { }
 
-	// // Method to create a new user
-	// public async create(data: User): Promise<object> {
-	// 	try {
-	// 		logger.info(`[UserService][create]  - ${JSON.stringify(data)}`);
-	// 		const userObj = { ...data };
-	// 		if(userObj.email){
-	// 			const userEmailExist = await userRepository.findOneBy({
-	// 				email: userObj.email,
-	// 			});
-	// 			if (userEmailExist) {
-	// 				throw new DuplicateRecordFoundError(MESSAGES.USER_EMAIL_EXIST);
-	// 			}
-	// 		}
-	// 		let subSptit :string[]=[];
-	// 		const user = await userRepository.save(userObj);
-	// 		if(data.sub){
-	// 			subSptit = data.sub.split('|');
-	// 			// checking if user is onboarding through wallet
-	// 			if(subSptit[1] === 'siwe'){
-	// 				const addressSplit = subSptit[2].split('0x');
-	// 				const address = `0x${addressSplit}`;
-	// 				const wallet  = new Wallet();
-	// 				wallet.address  = address;
-	// 				wallet.userId  = user.id;
-	// 				await walletService.create(user.id,wallet);
-	// 			}
-	// 		}
-	// 		try {
-	// 			await analyticsService.track('User Created', JSON.stringify({ userId: user.id }), user.id);
-	// 		} catch (err) {
-	// 			logger.log('error', `Error tracking user creation: ${err}`);
-	// 		}
-	// 		return user;
-	// 	} catch (error) {
-	// 		logger.error(`[UserService][create] - Error : ${error}`);
-	// 		throw error;
-	// 	}
-	// }
+	// Method to create a new user
+	public async create(data: UserData): Promise<User> {
+		try {
+			logger.info(`[UserService][create]  - ${JSON.stringify(data)}`);
+			// Fetch role based on role name
+			const roleName = data.role;
+			const role = await roleRepository.findOne({ where: { name: roleName } });
+	
+			// Save user's role
+			let roles : Role[]= [];
+			if (role) {
+				roles = [role];
+			}
+			const userObj = { ...data,roles };
+			if (userObj.email) {
+				const userEmailExist = await userRepository.findOneBy({
+					email: userObj.email,
+				});
+				if (userEmailExist) {
+					throw new DuplicateRecordFoundError(MESSAGES.USER_EMAIL_EXIST);
+				}
+			}
+			const user = await userRepository.save(userObj);
+			if (data.sub) {
+				let subSptit: string[] = [];
+				subSptit = data.sub.split('|');
+				// checking if user is onboarding through wallet
+				if (subSptit[1] === 'siwe') {
+					const addressSplit = subSptit[2].split('0x');
+					const address = `0x${addressSplit}`;
+					const wallet = new Wallet();
+					wallet.address = address;
+					wallet.userId = user.id;
+					await walletService.create(user.id, wallet);
+				}
+			}
+			try {
+				await analyticsService.track('User Created', JSON.stringify({ userId: user.id }), user.id);
+			} catch (err) {
+				logger.log('error', `Error tracking user creation: ${err}`);
+			}
+			return user;
+		} catch (error) {
+			logger.error(`[UserService][create] - Error : ${error}`);
+			throw error;
+		}
+	}
 
 	// Method to list users with optional search parameters
-	public async list(searchParams: { userName?: string, email?: string, phone?: string,limit?: number,offset?: number }): Promise<object> {
+	public async list(searchParams: { userName?: string, email?: string, phone?: string, limit?: number, offset?: number }): Promise<object> {
 		try {
 			logger.info(`[UserService][list]  - ${JSON.stringify(searchParams)}`);
 			const options: FindManyOptions<User> = {
@@ -92,7 +121,7 @@ export class UserService {
 				take: searchParams.limit,
 				where: {},
 			};
-			
+
 			if (searchParams.userName) {
 				options.where = { userName: Like(`%${searchParams.userName}%`) };
 			}
@@ -114,7 +143,7 @@ export class UserService {
 	public async get(userId: string): Promise<object | null> {
 		try {
 			logger.info(`[UserService][get]  - ${JSON.stringify(userId)}`);
-			if(userId){
+			if (userId) {
 				const user = await userRepository.findOne({
 					where: { id: userId },
 					relations: ['roles']
@@ -122,25 +151,38 @@ export class UserService {
 				if (!user) {
 					throw new NoRecordFoundError(MESSAGES.USER_NOT_EXIST);
 				}
+				// Remove profilePicture from user object
+				const { profilePicture, ...userData } = user;
+
 				const onBoardingFunnels = await this.getOnboardFunnel(userId);
-				const wallets = await walletRepository.find({where:{userId}});
-				const userData = { ...user, onBoardingFunnels, wallets };
+				const wallets = await walletRepository.find({ where: { userId } });
+
+				const userObj: UserDataResponse = { ...userData, profilePicture: { url: '', path: '' }, onBoardingFunnels, wallets };
+				if (userData.profilePicturePath) {
+					const url = (await getSignedUrlForRead({ path: userData.profilePicturePath })).url;
+					const profilePictureObj: { url: string, path: string } = { url, path: userData.profilePicturePath };
+					userObj.profilePicture = profilePictureObj;
+				} else {
+					userObj.profilePicture = {
+						url: profilePicture,
+						path: ''
+					};
+				}
 				try {
 					await analyticsService.track('Profile Visit', JSON.stringify({ userId: user.id }), user.id);
 				} catch (err) {
 					logger.log('error', `Error tracking user creation: ${err}`);
 				}
-				return userData;
-			}else {
+				return userObj;
+			} else {
 				throw new NoRecordFoundError(MESSAGES.USER_NOT_EXIST);
 			}
 		} catch (error) {
 			logger.error(`[UserService][get] - Error : ${error}`);
 			throw error;
 		}
-
-
 	}
+
 
 	// Method to update an existing user
 	public async update(userId: string, data: Partial<User>): Promise<object> {
@@ -181,13 +223,13 @@ export class UserService {
 		try {
 			logger.info(`[UserService][delete]  - ${JSON.stringify(userId)}`);
 			const user = await userRepository.findOneBy({
-			id: userId,
-		});
-		if (!user) {
-			throw new NoRecordFoundError(MESSAGES.USER_NOT_EXIST);
-		}
-		await userRepository.delete(userId);
-		return { success: true };
+				id: userId,
+			});
+			if (!user) {
+				throw new NoRecordFoundError(MESSAGES.USER_NOT_EXIST);
+			}
+			await userRepository.delete(userId);
+			return { success: true };
 		} catch (error) {
 			logger.error(`[UserService][delete] - Error : ${error}`);
 			throw error;
@@ -280,7 +322,7 @@ export class UserService {
 			logger.error(`[UserService][updateProtocols] - Error : ${error}`);
 			throw error;
 		}
-	
+
 	}
 
 	// Method to list protocols for a user
@@ -347,137 +389,87 @@ export class UserService {
 		}
 	}
 
-		// Method to create or update a user's social handle
-		public async createOrUpdateSocialHandle(userId: string, url:string, platform:string): Promise<SocialHandle> {
-			const user = await userRepository.findOne({
-				where: { id: userId },
-			});
-			if (!user) {
-				throw new NoRecordFoundError(MESSAGES.USER_NOT_EXIST);
-			}
-	
-			let socialHandle = await socialHandleRepository.findOne({ where: { userId, platform:platform } });
-
-			if (!socialHandle) {
-				socialHandle = new SocialHandle();
-				socialHandle.userId = userId;
-				socialHandle.platform = platform;
-			}
-	
-			socialHandle.url = url;
-			await socialHandleRepository.save(socialHandle);
-			return socialHandle;
-		}
-		// Method to retrieve a user's social handles
-		public async getSocialHandles(userId: string): Promise<SocialHandle[]> {
-			return socialHandleRepository.find({ where: { userId } });
+	// Method to create or update a user's social handle
+	public async createOrUpdateSocialHandle(userId: string, url: string, platform: string): Promise<SocialHandle> {
+		const user = await userRepository.findOne({
+			where: { id: userId },
+		});
+		if (!user) {
+			throw new NoRecordFoundError(MESSAGES.USER_NOT_EXIST);
 		}
 
-		public async checkUser(data: UserData): Promise<object | null> {
-			let userId: string = '';
-		
-			// Check user existence by sub
-			if (data.sub) {
-				const userAuth0 = await auth0UserRepository.findOne({ where: { sub: data.sub } });
-				if (userAuth0) {
-					userId = userAuth0.userId;
-				}
-			}
-		
-			// If user doesn't exist, create new user
-			if (!userId) {
-				
-		
-				// Creating the user
-				const createdUser = await authService.createAuth0User(data);
-		
-				if (createdUser) {
-					userId = createdUser.id;
-				} else {
-					// Handle the case where user creation failed
-					throw new Error('User creation failed');
-				}
-			}
-		
-			// Fetch and return user data
-			return await this.get(userId);
-		}		
+		let socialHandle = await socialHandleRepository.findOne({ where: { userId, platform: platform } });
 
-		// public async checkUserLink(data: UserData): Promise<object | null> {
-		// 	const userId: string |undefined = data.id;
-		// 	let userExist: boolean = false;
-	
-		// 	// Check user existence by sub
-		// 	if (data.sub) {
-		// 		const userSubQuery = userRepository.createQueryBuilder('user')
-		// 		.where('user.sub = :sub', { sub: data.sub }).andWhere('user.id != :userId', { userId });
-		// 		const userauthkeyExist = await userSubQuery.getOne();
-		// 		if (userauthkeyExist) {
-		// 			// await this.linkUser(userauthkeyExist.sub, data.sub);
-		// 		}
-		// 	}
-	
-		// 	// Check user existence by email
-		// 	if (data.email) {
-		// 		const userEmailExist = await userRepository.findOne({
-		// 			where: { email: data.email }
-		// 		});
-		// 		if (userEmailExist) {
-		// 			userExist = true;
-		// 			userId = userEmailExist.id;
-		// 			// await this.linkUser(userEmailExist.sub, data.sub);
-		// 		}
-		// 	}
-	
-		// 	// Create new user if not found
-		// 	if (!userExist) {
-		// 		const newUser = new User();
-		// 		newUser.fullName = data.fullName;
-		// 		newUser.userName = data.userName;
-		// 		newUser.email = data.email;
-		// 		newUser.phone = data.phone;
-		// 		newUser.gender = data.gender;
-		// 		newUser.profilePicture = data.profilePicture;
-		// 		newUser.title = data.title;
-		// 		newUser.biography = data.biography;
-		// 		newUser.role = data.role;
-		// 		newUser.sub = data.sub;
-		// 		await this.create(newUser);
-		// 		userId = newUser.id;
-		// 	}
-	
-		// 	// Get and return user data
-		// 	const user = await this.get(userId);
-		// 	return user;
-		// }
-	
-	
-		// Method to link users
-		public async linkUser(primaryUserId: string, secondaryUserId: string): Promise<{ success: boolean }> {
-			const url = 'https://login.auth0.com/api/v2/users/' + primaryUserId + '/identities';
-			const headers = { 'Content-Type': 'application/json', 'Accept': 'application/json' };
-			const reqData = { 'provider': 'auth0', 'connection_id': 'string', 'user_id': secondaryUserId, 'link_with': 'string' };
-	
-			await axios.post(url, reqData, { headers })
-				.then(response => { logger.info(`[AuthenticationService][unLinkUser]  - response : ${JSON.stringify(response.data)}`);})
-				.catch(error => { logger.error(`[AuthenticationService][unLinkUser]  - error :${JSON.stringify(error)}`);});
-	
-			return { success: true };
+		if (!socialHandle) {
+			socialHandle = new SocialHandle();
+			socialHandle.userId = userId;
+			socialHandle.platform = platform;
 		}
-	
-		// Method to unlink users
-		public async unLinkUser(primaryUserId: string, provider: string): Promise<{ success: boolean }> {
-			const config = {
-				method: 'delete',
-				maxBodyLength: Infinity,
-				url: 'https://login.auth0.com/api/v2/users/' + primaryUserId + '/identities/' + provider + '/:user_id',
-				headers: { 'Accept': 'application/json' }
-			};
-	
-			await axios.request(config)
-				.then(response => { logger.info(`[AuthenticationService][unLinkUser]  - response : ${JSON.stringify(response.data)}`);})
-				.catch(error => { logger.error(`[AuthenticationService][unLinkUser]  - error :${JSON.stringify(error)}`);});
-	
-			return { success: true };
+
+		socialHandle.url = url;
+		await socialHandleRepository.save(socialHandle);
+		return socialHandle;
+	}
+	// Method to retrieve a user's social handles
+	public async getSocialHandles(userId: string): Promise<SocialHandle[]> {
+		return socialHandleRepository.find({ where: { userId } });
+	}
+
+	public async checkUser(data: UserData): Promise<object | null> {
+		let userId: string = '';
+
+		// Check user existence by sub
+		if (data.sub) {
+			const userAuth0 = await auth0UserRepository.findOne({ where: { sub: data.sub } });
+			if (userAuth0) {
+				userId = userAuth0.userId;
+			}
 		}
+
+		// If user doesn't exist, create new user
+		if (!userId) {
+			// Creating the user
+			const createdAuth0User = await authService.createAuth0User(data);
+			if (createdAuth0User) {
+				const savedUser = await this.create(data);
+				userId = savedUser.id;
+				createdAuth0User.userId = userId;
+				await auth0UserRepository.save(createdAuth0User);
+			} else {
+				// Handle the case where user creation failed
+				throw new Error('User creation failed');
+			}
+		}
+
+		// Fetch and return user data
+		return await this.get(userId);
+	}
+
+	public async linkUser(primaryUserId: string, secondaryUserId: string): Promise<{ success: boolean }> {
+		const url = 'https://login.auth0.com/api/v2/users/' + primaryUserId + '/identities';
+		const headers = { 'Content-Type': 'application/json', 'Accept': 'application/json' };
+		const reqData = { 'provider': 'auth0', 'connection_id': 'string', 'user_id': secondaryUserId, 'link_with': 'string' };
+
+		await axios.post(url, reqData, { headers })
+			.then(response => { logger.info(`[AuthenticationService][unLinkUser]  - response : ${JSON.stringify(response.data)}`); })
+			.catch(error => { logger.error(`[AuthenticationService][unLinkUser]  - error :${JSON.stringify(error)}`); });
+
+		return { success: true };
+	}
+
+	// Method to unlink users
+	public async unLinkUser(primaryUserId: string, provider: string): Promise<{ success: boolean }> {
+		const config = {
+			method: 'delete',
+			maxBodyLength: Infinity,
+			url: 'https://login.auth0.com/api/v2/users/' + primaryUserId + '/identities/' + provider + '/:user_id',
+			headers: { 'Accept': 'application/json' }
+		};
+
+		await axios.request(config)
+			.then(response => { logger.info(`[AuthenticationService][unLinkUser]  - response : ${JSON.stringify(response.data)}`); })
+			.catch(error => { logger.error(`[AuthenticationService][unLinkUser]  - error :${JSON.stringify(error)}`); });
+
+		return { success: true };
+	}
 }

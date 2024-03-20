@@ -1,9 +1,11 @@
 // Import necessary modules and types
 import {
-    Body, JsonController, Post
+    Body, JsonController, Post,
+    // UseBefore
 } from 'routing-controllers';
 
 import { UserService } from '../services/user.service';
+// import { AuthMiddleware } from '../middleware/authentication';
 
 // Initialize authentication service
 const userService = new UserService();
@@ -35,6 +37,7 @@ export class AuthenticationController {
      * @param body User data to check
      * @returns User object if exists, otherwise null
      */
+    // @UseBefore(AuthMiddleware)
     @Post('/checkUser')
     public async checkUser(@Body() body: UserData): Promise<object | null> {
         const user: UserData = {

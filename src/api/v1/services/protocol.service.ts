@@ -69,6 +69,7 @@ export class ProtocolService {
 
       // Find protocols with count
       const [protocols, count] = await protocolRepository.findAndCount(options);
+      logger.info(`[ProtocolService][listData]  - ${JSON.stringify(protocols)}`);
       return { count, protocols };
     } catch (error) {
       logger.error(`[ProtocolService][list] - Error : ${error}`);

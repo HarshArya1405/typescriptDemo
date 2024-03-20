@@ -1,5 +1,5 @@
 import { Service } from 'typedi';
-import { Role, User, Auth0User } from '../../models';
+import { User, Auth0User } from '../../models';
 import { AppDataSource } from '../../../loaders/typeormLoader';
 import { NoRecordFoundError } from '../../errors';
 import { MESSAGES } from '../../constants/messages';
@@ -9,7 +9,6 @@ import { FindManyOptions, Like } from 'typeorm';
 
 const userRepository = AppDataSource.getRepository(User);
 const auth0UserRepository = AppDataSource.getRepository(Auth0User);
-const roleRepository = AppDataSource.getRepository(Role);
 const analyticsService = new AnalyticsService();
 
 interface UserData {
@@ -29,18 +28,7 @@ interface UserData {
 export class AuthService {
     constructor() { }
 
-    public async createAuth0User(data: UserData): Promise<Auth0User | User | null> {
-        // Check if the sub already exists in auth0User table
-        if (data.sub) {
-            const existingAuth0User = await auth0UserRepository.findOne({ where: { sub: data.sub } });
-            if (existingAuth0User) {
-                const user = await userRepository.findOne({ where: { id: existingAuth0User.userId } });
-                if (user) {
-                    return user;
-                }
-            }
-        }
-
+    public async createAuth0User(data: UserData): Promise<Auth0User> {
         const auth0user = new Auth0User();
         auth0user.fullName = data.fullName;
         auth0user.userName = data.userName;
@@ -53,30 +41,7 @@ export class AuthService {
         auth0user.sub = data.sub;
         // Create new auth0User
         await auth0UserRepository.save(data);
-
-        // Create new user in the user's table
-        const newUser = new User();
-        newUser.fullName = data.fullName;
-        newUser.userName = data.userName;
-        newUser.email = data.email;
-        newUser.phone = data.phone;
-        newUser.gender = data.gender;
-        newUser.profilePicture = data.profilePicture;
-        newUser.title = data.title;
-        newUser.biography = data.biography;
-        // newUser.sub = data.sub;
-
-        // Fetch role based on role name
-        const roleName = data.role;
-        const role = await roleRepository.findOne({ where: { name: roleName } });
-
-        // Save user's role
-        if (role) {
-            newUser.roles = [role];
-        }
-
-        const savedUser = await userRepository.save(newUser);
-        return savedUser;
+        return auth0user;
     }
 
 

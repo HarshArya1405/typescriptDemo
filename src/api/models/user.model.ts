@@ -18,6 +18,9 @@ export class User {
 
   @Column({ nullable: true })
   profilePicture: string = '';
+
+  @Column({ nullable: true })
+  profilePicturePath: string = '';
   
   @Column({ nullable: true })
   phone: string = '';
@@ -31,6 +34,13 @@ export class User {
   @Column({ nullable: true })
   gender: string = '';
 
+  @Column({nullable:true})
+  syncYoutube: boolean = false;
+
+  @ManyToMany(() => Role)
+  @JoinTable()
+  roles!: Role[];
+
   @ManyToMany(() => Tag)
   @JoinTable()
   tags!: Tag[];
@@ -39,18 +49,14 @@ export class User {
   @JoinTable()
   protocols!: Protocol[];
 
-  @ManyToMany(() => Role)
-  @JoinTable()
-  roles!: Role[];
+  @OneToMany(() => Auth0User, auth0User => auth0User.user)
+  auth0Users!: Auth0User[];
 
   @OneToMany(() => SocialHandle, socialHandle => socialHandle.user)
   socialHandles!: SocialHandle[];
 
   @OneToMany(() => Wallet, wallet => wallet.user)
   wallets!: Wallet[];
-
-  @OneToMany(() => Auth0User, auth0User => auth0User.user)
-  auth0Users!: Auth0User[];
 
   @CreateDateColumn({ type: 'bigint', default: () => 'EXTRACT(EPOCH FROM NOW()) * 1000' })
   createdAt: number = Date.now();

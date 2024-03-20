@@ -41,6 +41,7 @@ interface UserData {
     biography: string;
     userId: string;
     sub: string;
+    role: string;
 }
 
 // Controller for user endpoints

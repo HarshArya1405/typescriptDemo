@@ -1,6 +1,11 @@
 import { MicroframeworkLoader, MicroframeworkSettings } from 'microframework-w3tec';
 import { createExpressServer } from 'routing-controllers';
-import { UserController, RoleController, ProtocolController, TagController, AuthenticationController, VideoContentController, VoteController, YoutubeController, WalletController, AuthUserController } from '../api/v1/controllers';
+import { 
+  UserController, RoleController, ProtocolController, TagController,
+  AuthenticationController, VideoContentController, VoteController,
+  YoutubeController, WalletController, S3Controller, 
+  AuthUserController
+} from '../api/v1/controllers';
 import express from 'express';
 import { CorsOptions } from 'cors';
 import ENV from './../config/environments';
@@ -34,6 +39,7 @@ export const expressInitLoader: MicroframeworkLoader = (settings?: Microframewor
       VoteController,
       YoutubeController,
       WalletController,
+      S3Controller,
       AuthUserController
     ],
   });

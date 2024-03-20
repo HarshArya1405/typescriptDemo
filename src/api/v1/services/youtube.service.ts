@@ -53,6 +53,7 @@ export class YoutubeService {
         const savedToken:YoutubeUserToken = await this.saveToken(token, userId);
 
         const result:{playlistId?:string,playlists?:{items:YouTubeItem[]}} = await this.fetchChannelPlaylist(token);
+        logger.info(`[YoutubeService][generateToken] Playlist   - ${JSON.stringify(result)}`);
         if(result.playlistId){
           // checking if playlistId already exist for same user, then updating old one
           const configExist = await youtubeUserTokenRepository.findOne({
@@ -97,6 +98,8 @@ export class YoutubeService {
             }
           }); 
         });
+        logger.info(`[YoutubeService][fetchChannelPlaylist] channelData   - ${JSON.stringify(data)}`);
+
         const playlistId:string = data.contentDetails.relatedPlaylists.uploads;
         const playlists :object = await yTconnection.getPlaylistItems(playlistId,userToken.access_token);
 
@@ -136,14 +139,17 @@ export class YoutubeService {
     try {
       if(items && items.length >0){
         for(const item of items){
-          const youtubeDraft = new YoutubeDraft();
-          youtubeDraft.userId = userId;
-          youtubeDraft.title = item.snippet.title;
-          youtubeDraft.description = item.snippet.description;
-          youtubeDraft.publishedAt = item.snippet.publishedAt;
-          youtubeDraft.thumbnail = item.snippet.thumbnails.standard.url;
-          youtubeDraft.url = item.snippet.resourceId.videoId;
-          await YoutubeDraftRepository.save(youtubeDraft);
+          const youtubeDraftExist = await YoutubeDraftRepository.findOne({where:{userId,url:item.snippet.resourceId.videoId}});
+          if(!youtubeDraftExist){
+            const youtubeDraft = new YoutubeDraft();
+            youtubeDraft.userId = userId;
+            youtubeDraft.title = item.snippet.title;
+            youtubeDraft.description = item.snippet.description;
+            youtubeDraft.publishedAt = item.snippet.publishedAt;
+            youtubeDraft.thumbnail = item.snippet.thumbnails.standard.url;
+            youtubeDraft.url = item.snippet.resourceId.videoId;
+            await YoutubeDraftRepository.save(youtubeDraft);
+          }
         }
       }
       return {success:true};

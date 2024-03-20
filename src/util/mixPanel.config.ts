@@ -8,7 +8,7 @@ import { AppDataSource } from '../loaders/typeormLoader';
 const userRepository = AppDataSource.getRepository(User);
 
 const mixpanelConfig = ENV.mixpanel;
-const mixpanelToken = mixpanelConfig?.token || '';
+const mixpanelToken = mixpanelConfig?.token || ''; // Provide a default empty string if mixpanelConfig?.token is undefined
 const mixpanel = Mixpanel.init(mixpanelToken);
 
 
@@ -16,6 +16,7 @@ interface MixpanelUserParams {
     '$first_name'?: string;
     '$email'?: string;
     '$phone'?: string;
+    'roles'?: object[];
     'ip'?: string;
 }
 
@@ -55,12 +56,13 @@ class AnalyticsService {
      */
     async setUser(userId: string, ip?: string): Promise<void> {
         try {
-            const user = await userRepository.findOne({ where: { id: userId }});
+            const user = await userRepository.findOne({ where: { id: userId },relations:['roles']});
             if (user) {
                 const params: MixpanelUserParams = {
                     '$first_name': user.fullName,
                     '$email': user.email,
                     '$phone': user.phone,
+                    'roles': user.roles,
                 };
                 if (ip) {
                     params.ip = ip;

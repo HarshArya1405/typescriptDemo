@@ -1,5 +1,5 @@
 // Import necessary modules and types
-import { IsNotEmpty, IsArray, IsNumber, IsNumberString, IsPositive, IsAlpha, IsOptional, IsAlphanumeric, IsEnum, isUUID, IsString } from 'class-validator';
+import { IsNotEmpty, IsArray, IsNumber, IsNumberString, IsPositive, IsAlpha, IsOptional, IsAlphanumeric, IsEnum, isUUID, IsString, IsBoolean } from 'class-validator';
 import { Body, Delete, Get, JsonController, Param, Post, Put, QueryParams } from 'routing-controllers';
 import { User, OnBoardingFunnel,SocialHandle } from '../../models';
 import { UserService } from '../services/user.service';
@@ -37,6 +37,10 @@ class BaseUser {
 
     @IsNotEmpty()
     public gender!: string;
+
+    @IsOptional()
+    @IsBoolean()
+    public syncYoutube!:boolean;
 }
 
 // Define the body for saving tags
@@ -119,18 +123,19 @@ export class UserController {
      */
     @Post()
     public async create(@Body() body: CreateUserBody): Promise<object> {
+        logger.info(body);
         // Create a new user object from the body
-        const user = new User();
-        user.fullName = body.fullName;
-        user.userName = body.userName;
-        user.email = body.email;
-        user.phone = body.phone;
-        user.gender = body.gender;
-        user.profilePicture = body.profilePicture;
-        user.title = body.title;
-        user.biography = body.biography;
-        user.role = body.role;
-        return userService.create(user);
+        // const user = new User();
+        // user.fullName = body.fullName;
+        // user.userName = body.userName;
+        // user.email = body.email;
+        // user.phone = body.phone;
+        // user.gender = body.gender;
+        // user.profilePicture = body.profilePicture;
+        // user.title = body.title;
+        // user.biography = body.biography;
+        // return userService.create(user);
+        return {status : 'API is Not Active'};
     }
 
     /**
@@ -141,7 +146,7 @@ export class UserController {
     @Get('/:id')
     public async get(@Param('id') id: string): Promise<object | null> {
         // If 'id' is defined check if it's a valid UUID format
-        if (id && !isUUID(id)) throw new BadRequestParameterError(`Invalid id, UUID format expected but received ${id}`);
+        // if (id && !isUUID(id)) throw new BadRequestParameterError(`Invalid id, UUID format expected but received ${id}`);
         return await userService.get(id);
     }
 
