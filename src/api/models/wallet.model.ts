@@ -16,7 +16,7 @@ export class Wallet {
   @Column({ nullable: false })
   address: string = '';
 
-  @ManyToOne(() => User, user => user.wallets)
+  @ManyToOne(() => User, user => user.wallets, {onDelete: 'CASCADE'})
   user!: User; 
 
   @CreateDateColumn({ type: 'bigint', default: () => 'EXTRACT(EPOCH FROM NOW()) * 1000' })

@@ -22,7 +22,7 @@ export class SocialHandle {
   @UpdateDateColumn({ type: 'bigint', nullable: false, default: () => 'EXTRACT(EPOCH FROM NOW()) * 1000' })
   updatedAt: number = Date.now(); 
 
-  @ManyToOne(() => User, user => user.socialHandles)
+  @ManyToOne(() => User, user => user.socialHandles, {onDelete: 'CASCADE'})
   @JoinColumn({ name: 'userId' })
   user!: User;
 

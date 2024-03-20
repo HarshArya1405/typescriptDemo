@@ -70,9 +70,8 @@ export class UserService {
 			logger.info(`[UserService][create]  - ${JSON.stringify(data)}`);
 			// Fetch role based on role name
 			const roleName = data.role;
-			const role = await roleRepository.findOne({ where: { name: roleName } });
-	
 			// Save user's role
+			const role = await roleRepository.findOne({ where: { name: roleName } });
 			let roles : Role[]= [];
 			if (role) {
 				roles = [role];

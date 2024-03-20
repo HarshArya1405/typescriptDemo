@@ -49,13 +49,13 @@ export class User {
   @JoinTable()
   protocols!: Protocol[];
 
-  @OneToMany(() => Auth0User, auth0User => auth0User.user)
+  @OneToMany(() => Auth0User, auth0User => auth0User.user,{ cascade: true})
   auth0Users!: Auth0User[];
 
-  @OneToMany(() => SocialHandle, socialHandle => socialHandle.user)
+  @OneToMany(() => SocialHandle, socialHandle => socialHandle.user ,{ cascade: true})
   socialHandles!: SocialHandle[];
 
-  @OneToMany(() => Wallet, wallet => wallet.user)
+  @OneToMany(() => Wallet, wallet => wallet.user,{ cascade: true})
   wallets!: Wallet[];
 
   @CreateDateColumn({ type: 'bigint', default: () => 'EXTRACT(EPOCH FROM NOW()) * 1000' })

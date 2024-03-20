@@ -34,6 +34,22 @@ export class WalletService {
         }
     }
 
+
+    public async createFromSub(userId: string,sub:string): Promise<Wallet | null>{
+        let subSptit: string[] = [];
+        subSptit = sub.split('|');
+        // checking if user is onboarding through wallet
+        if (subSptit[1] === 'siwe') {
+            const addressSplit = subSptit[2].split('0x');
+            const address = `0x${addressSplit}`;
+            const wallet = new Wallet();
+            wallet.address = address;
+            wallet.userId = userId;
+            return await this.create(userId, wallet);
+        }
+        return null;
+    }
+
     public async get(userId: string, walletId: string): Promise<Wallet> {
         try {
             const wallet = await walletRepository.findOne({

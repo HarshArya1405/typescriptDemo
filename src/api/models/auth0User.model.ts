@@ -37,7 +37,7 @@ export class Auth0User {
   @Column({ nullable: false })
   sub: string = '';
 
-  @ManyToOne(() => User, user => user.auth0Users)
+  @ManyToOne(() => User, user => user.auth0Users, {onDelete: 'CASCADE'})
   user!: User;
 
   @CreateDateColumn({ type: 'bigint', default: () => 'EXTRACT(EPOCH FROM NOW()) * 1000' })

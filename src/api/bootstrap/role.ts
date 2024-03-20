@@ -1,5 +1,5 @@
 export const roles = [
-    { name: 'Learner', description: 'Learner', enabled: true },
-    { name: 'Creator', description: 'Creator', enabled: true },
-    { name: 'Admin', description: 'Admin', enabled: true }
+    { name: 'learner', description: 'Learner', enabled: true },
+    { name: 'creator', description: 'Creator', enabled: true },
+    { name: 'admin', description: 'Admin', enabled: true }
   ];
