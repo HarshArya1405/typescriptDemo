@@ -1,10 +1,11 @@
 // Import necessary modules and types
 import { IsNotEmpty, IsArray, IsNumber, IsNumberString, IsPositive, IsAlpha, IsOptional, IsAlphanumeric, IsEnum, isUUID, IsString, IsBoolean } from 'class-validator';
-import { Body, Delete, Get, JsonController, Param, Post, Put, QueryParams } from 'routing-controllers';
+import { Body, Delete, Get, JsonController, Param, Post, Put, QueryParams, UseBefore } from 'routing-controllers';
 import { User, OnBoardingFunnel,SocialHandle } from '../../models';
 import { UserService } from '../services/user.service';
 import { BadRequestParameterError } from '../../errors';
 import logger from '../../../util/logger';
+import { AuthMiddleware } from '../middleware/authentication';
 
 // Create an instance of the user service
 const userService = new UserService();
@@ -166,6 +167,7 @@ export class UserController {
      * @param body Partial user data to update
      * @returns Updated user
      */
+    @UseBefore(AuthMiddleware)
     @Put('/:id')
     public async update(@Param('id') id: string, @Body() body: Partial<User>): Promise<object> {
         // If 'id' is defined check if it's a valid UUID format
