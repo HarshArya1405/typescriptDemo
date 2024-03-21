@@ -3,7 +3,7 @@ import axios, { AxiosResponse } from 'axios';
 import jwt, { Jwt, JwtHeader } from 'jsonwebtoken';
 import jwkToPem, { JWK } from 'jwk-to-pem';
 import { AppDataSource } from '../../../loaders/typeormLoader';
-import ENV from '../../../config/g';
+import ENV from '../../../config/environments';
 
 // Import your database module or ORM here
 import { User,Auth0User } from '../../models'; // Assuming you have a User model representing your database users
