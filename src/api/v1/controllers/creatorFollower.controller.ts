@@ -2,28 +2,38 @@ import { JsonController, Post, Body, BadRequestError, Param, Get } from 'routing
 import { CreatorFollower } from '../../models';
 import { AppDataSource } from '../../../loaders/typeormLoader';
 import { CreatorFollowerService } from '../services/creator.follower.service';
+import { BadRequestParameterError } from '../../errors';
 
 const creatorFollowerService = new CreatorFollowerService();
 
-@JsonController('/creator-followers')
+@JsonController('/api/v1/follower')
 export class CreatorFollowerController {
   private creatorFollowerRepository = AppDataSource.getRepository(CreatorFollower);
 
-  @Post('/toggle-follow')
-  public async toggleFollow(@Body() requestBody: { learnerId: string, creatorId: string }): Promise<string> {
+  @Post('/followUnfollow')
+  public async toggleFollow(@Body() requestBody: { learnerId: string, creatorId: string, action: string }): Promise<{ success: boolean }> {
     try {
-      const { learnerId, creatorId } = requestBody;
-
-      const existingFollow = await this.creatorFollowerRepository.findOne({ where: { creatorId, learnerId } });
-
-      if (existingFollow) {
-        await this.creatorFollowerRepository.delete(existingFollow.id);
-        return `User with ID ${learnerId} unfollowed creator with ID ${creatorId} successfoolly.`;
-      } else {
+      const { learnerId, creatorId, action } = requestBody;
+  
+      if (action !== 'follow' && action !== 'unfollow') {
+        throw new BadRequestError('Invalid action provided');
+      }
+  
+      if (action === 'follow') {
+        const existingFollow = await this.creatorFollowerRepository.findOne({ where: { creatorId, learnerId } });
+        if (existingFollow) {
+          throw new BadRequestParameterError(`User with ID ${learnerId} is already following creator with ID ${creatorId}`);
+        }
         const newFollow = this.creatorFollowerRepository.create({ creatorId, learnerId });
         await this.creatorFollowerRepository.save(newFollow);
-        return `User with ID ${learnerId} followed creator with ID ${creatorId} successfoolly.`;
+      } else {
+        const existingFollow = await this.creatorFollowerRepository.findOne({ where: { creatorId, learnerId } });
+        if (existingFollow) {
+          await this.creatorFollowerRepository.delete(existingFollow.id);
+        }
       }
+  
+      return { success: true };
     } catch (error) {
       console.error('Error toggling follow:', error);
       throw new BadRequestError('Failed to toggle follow status.');
