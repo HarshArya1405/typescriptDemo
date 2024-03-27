@@ -4,7 +4,8 @@ import {
   UserController, RoleController, ProtocolController, TagController,
   AuthenticationController, VideoContentController, VoteController,
   YoutubeController, WalletController, S3Controller, 
-  AuthUserController
+  AuthUserController,
+  CreatorFollowerController
 } from '../api/v1/controllers';
 import express from 'express';
 import { CorsOptions } from 'cors';
@@ -40,7 +41,8 @@ export const expressInitLoader: MicroframeworkLoader = (settings?: Microframewor
       YoutubeController,
       WalletController,
       S3Controller,
-      AuthUserController
+      AuthUserController,
+      CreatorFollowerController
     ],
   });
   app.use(express.json());
