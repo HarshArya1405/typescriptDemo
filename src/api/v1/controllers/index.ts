@@ -10,3 +10,4 @@ export {YoutubeController} from './youtube.controller';
 export {WalletController} from './wallet.controller';
 export { S3Controller } from './s3.controller';
 export {AuthUserController}  from './auth0user.controller';
+export { CreatorFollowerController } from './creatorFollower.controller';
