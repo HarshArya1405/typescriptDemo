@@ -1,6 +1,6 @@
 // Import necessary modules and types
 import { IsNotEmpty, IsNumber, ValidateNested, IsBoolean, IsOptional } from 'class-validator';
-import { Body, Get, JsonController, Param, Post, Put } from 'routing-controllers';
+import { BadRequestError, Body, Get, JsonController, Param, Post, Put } from 'routing-controllers';
 import { ResponseSchema } from 'routing-controllers-openapi';
 import { Role } from '../../models/role.model';
 import { RoleService } from '../services/role.service';
@@ -40,6 +40,10 @@ class CreateRoleBody extends BaseRole {
 
     @IsBoolean()
     public enabled: boolean = false;
+}
+
+interface UpdateUserRolesRequest {
+    roleIds: string[];
 }
 
 // Controller for role endpoints
@@ -100,4 +104,25 @@ export class RoleController {
         role.enabled = body.enabled;
         return await roleService.update(id, role);
     }
+
+    /**
+     * Endpoint to update roles for a particular user
+     * @param userId ID of the user to update roles for
+     * @param roleIds Array of role IDs to assign to the user
+     * @returns Success message
+     */
+    @Put('/:userId/updateRoles')
+    public async updateUserRoles(
+        @Param('userId') userId: string,
+        @Body() requestBody: UpdateUserRolesRequest
+    ): Promise<object> {
+        try {
+            const roleIds: string[] = requestBody.roleIds; // Extract roleIds from the request body
+    
+            await roleService.updateUserRoles(userId, roleIds);
+            return { success: true, message: 'User roles updated successfully' };
+        } catch (error) {
+            throw new BadRequestError('Failed to update user roles');
+        }
+    }    
 }
