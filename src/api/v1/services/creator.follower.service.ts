@@ -10,21 +10,25 @@ const userRepository = AppDataSource.getRepository(User);
 
 @Service()
 export class CreatorFollowerService {
-  constructor() {}
+  constructor() { }
 
   // Method to toggle follow/unfollow
-  public async toggleFollow(learnerId: string, creatorId: string): Promise<void> {
+  public async toggleFollow(learnerId: string, creatorId: string, action: string): Promise<void> {
     try {
-      const existingFollow = await creatorFollowerRepository.findOne({ where: { creatorId, learnerId } });
-
-      if (existingFollow) {
-        // If already following, unfollow
-        await creatorFollowerRepository.delete(existingFollow.id);
-        logger.info(`User with ID ${learnerId} unfollowed creator with ID ${creatorId}`);
-      } else {
-        // If not following, follow
+      if (action === 'follow') {
         await creatorFollowerRepository.save({ creatorId, learnerId });
         logger.info(`User with ID ${learnerId} followed creator with ID ${creatorId}`);
+      } else if (action === 'unfollow') {
+        const existingFollow = await creatorFollowerRepository.findOne({ where: { creatorId, learnerId } });
+        if (existingFollow) {
+          await creatorFollowerRepository.delete(existingFollow.id);
+          logger.info(`User with ID ${learnerId} unfollowed creator with ID ${creatorId}`);
+        } else {
+          logger.info(`User with ID ${learnerId} is not following creator with ID ${creatorId}`);
+        }
+      } else {
+        logger.error('Invalid action provided');
+        throw new Error('Invalid action');
       }
     } catch (error) {
       logger.error(`Error toggling follow/unfollow: ${error}`);
