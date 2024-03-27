@@ -6,6 +6,7 @@ import { UserService } from '../services/user.service';
 import { BadRequestParameterError } from '../../errors';
 import logger from '../../../util/logger';
 import { AuthMiddleware } from '../middleware/authentication';
+//import { RoleBasedAuthentication } from '../middleware/roleBasedAuthenticationMiddleware';
 
 // Create an instance of the user service
 const userService = new UserService();
@@ -145,6 +146,7 @@ export class UserController {
      * @returns User information if found, else null
      */
     @Get('/:id')
+    //@UseBefore(AuthMiddleware, RoleBasedAuthentication.invoke('learner'))
     public async get(@Param('id') id: string): Promise<object | null> {
         // If 'id' is defined check if it's a valid UUID format
         // if (id && !isUUID(id)) throw new BadRequestParameterError(`Invalid id, UUID format expected but received ${id}`);
