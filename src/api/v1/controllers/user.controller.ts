@@ -1,6 +1,6 @@
 // Import necessary modules and types
 import { IsNotEmpty, IsArray, IsNumber, IsNumberString, IsPositive, IsAlpha, IsOptional, IsAlphanumeric, IsEnum, isUUID, IsString, IsBoolean } from 'class-validator';
-import { Body, Delete, Get, JsonController, Param, Post, Put, QueryParams, UseBefore } from 'routing-controllers';
+import { Body, Delete, Get, JsonController, Param, Post, Put, QueryParams, Req, UseBefore } from 'routing-controllers';
 import { User, OnBoardingFunnel,SocialHandle } from '../../models';
 import { UserService } from '../services/user.service';
 import { BadRequestParameterError } from '../../errors';
@@ -110,6 +110,9 @@ class SocialHandleBody {
 
     @IsString()
     public url!: string;
+}
+interface CustomRequest extends Request {
+    user?: User;
 }
 
 // Controller for user endpoints
@@ -339,5 +342,17 @@ export class UserController {
     public async getSocialHandles(@Param('userId') userId: string): Promise<SocialHandle[]> {
         if (userId && !isUUID(userId)) throw new BadRequestParameterError(`Invalid id, UUID format expected but received ${userId}`);
         return await userService.getSocialHandles(userId);
+    }
+    @Get('/creators/lists')
+    @UseBefore(AuthMiddleware)
+    public async listCreators(
+        @Req() request: CustomRequest,
+        @QueryParams() query: GetUsersQuery
+    ): Promise<object> {
+        const currentUser = request.user;
+        if (!currentUser) {
+            throw new Error('Current user not found');
+        }
+        return await userService.listCreators(currentUser, query);
     }
 }
