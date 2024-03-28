@@ -101,6 +101,9 @@ class OnboardFunnelBody {
     @IsAlpha()
     @IsEnum(Status, { message: 'Invalid status. Must be one of: skipped, completed' })
     public status!: string;
+
+    @IsNotEmpty()
+    public role!: string;
 }
 
 class SocialHandleBody {
@@ -286,7 +289,7 @@ export class UserController {
     public async setOnboardFunnel(@Param('userId') userId: string, @Body() body: OnboardFunnelBody): Promise<OnBoardingFunnel | undefined> {
         // If 'id' is defined check if it's a valid UUID format
         if (userId && !isUUID(userId)) throw new BadRequestParameterError(`Invalid userId, UUID format expected but received ${userId}`);
-        return await userService.setOnboardFunnel(userId, body.stage, body.status);
+        return await userService.setOnboardFunnel(userId, body.stage, body.status, body.role);
     }
 
     /**
@@ -300,6 +303,17 @@ export class UserController {
         if (userId && !isUUID(userId)) throw new BadRequestParameterError(`Invalid userId, UUID format expected but received ${userId}`);
         return await userService.getOnboardFunnel(userId);
     }
+
+    @Delete('/:userId/onboardFunnel')
+    public async deleteOnboardFunnel(@Param('userId') userId: string, @Body() body: { stage: string; role: string }): Promise<{ success: boolean }> {
+        // If 'userId' is defined, check if it's a valid UUID format
+        if (userId && !isUUID(userId)) {
+            throw new BadRequestParameterError(`Invalid userId, UUID format expected but received ${userId}`);
+        }
+    
+        // Call the deleteOnboardFunnel function
+        return await userService.deleteOnboardFunnel(userId, body);
+    }    
 
     /**
      * Endpoint to create or update a user's social handle
