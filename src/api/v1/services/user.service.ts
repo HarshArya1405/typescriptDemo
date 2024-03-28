@@ -346,9 +346,9 @@ export class UserService {
 	}
 
 	// Method to set an onboarding funnel stage for a user
-	public async setOnboardFunnel(userId: string, stage: string, status: string): Promise<OnBoardingFunnel | undefined> {
+	public async setOnboardFunnel(userId: string, stage: string, status: string, role: string): Promise<OnBoardingFunnel | undefined> {
 		try {
-			logger.info(`[UserService][setOnboardFunnel]  - user : ${JSON.stringify(userId)} , stage :${JSON.stringify(stage)} , status :${JSON.stringify(status)}`);
+			logger.info(`[UserService][setOnboardFunnel]  - user : ${JSON.stringify(userId)} , stage :${JSON.stringify(stage)} , status :${JSON.stringify(status)}, role : ${JSON.stringify(role)}`);
 			const user = await this.get(userId);
 			if (user) {
 				let onboardingFunnel = await onBoardingFunnelRepository.findOne({
@@ -361,6 +361,7 @@ export class UserService {
 					onboardingFunnel.userId = userId;
 					onboardingFunnel.stage = stage;
 					onboardingFunnel.status = status;
+					onboardingFunnel.role = role;
 				}
 				return await onBoardingFunnelRepository.save(onboardingFunnel);
 			}
@@ -448,6 +449,29 @@ export class UserService {
 
 		// Fetch and return user data
 		return await this.get(userId);
+	}
+
+	// Function to delete OnBoardingFunnel based on parameters
+	public async deleteOnboardFunnel(userId: string, body: { stage: string; role: string }): Promise<{ success: boolean }> {
+		try {
+			// Fetch the onboarding funnel record based on userId, stage, and role
+			const onboardingFunnel = await onBoardingFunnelRepository.findOne({
+				where: { userId: userId, stage: body.stage, role: body.role }
+			});
+	
+			// If no matching record found, return error message
+			if (!onboardingFunnel) {
+				throw new NoRecordFoundError('No matching record found to delete');
+			}
+	
+			// Delete the record
+			await onBoardingFunnelRepository.delete(onboardingFunnel.id);
+			
+			return { success: true };
+		} catch (error) {
+			logger.error(`[UserService][deleteOnboardFunnel] - Error: ${error}`);
+			throw new Error('Failed to delete onboarding funnel record');
+		}
 	}
 
 	public async linkUser(primaryUserId: string, secondaryUserId: string): Promise<{ success: boolean }> {
