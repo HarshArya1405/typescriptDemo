@@ -20,6 +20,9 @@ export class OnBoardingFunnel {
   @Column({ nullable: false })
   stage: string = '';
 
+  @Column({ nullable: false })
+  role: string = '';
+
   @Column({
     type: 'enum',
     enum: OnBoardingStatus,
