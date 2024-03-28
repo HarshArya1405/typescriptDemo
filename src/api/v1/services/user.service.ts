@@ -1,5 +1,5 @@
 import { Service } from 'typedi';
-import { Role, User, Protocol, Tag, OnBoardingFunnel, SocialHandle, Wallet, Auth0User } from '../../models';
+import { Role, User, Protocol, Tag, OnBoardingFunnel, SocialHandle, Wallet, Auth0User, CreatorFollower } from '../../models';
 import { AppDataSource } from '../../../loaders/typeormLoader';
 import { DuplicateRecordFoundError, NoRecordFoundError } from '../../errors';
 import { MESSAGES } from '../../constants/messages';
@@ -26,6 +26,7 @@ const onBoardingFunnelRepository = AppDataSource.getRepository(OnBoardingFunnel)
 const socialHandleRepository = AppDataSource.getRepository(SocialHandle);
 const auth0UserRepository = AppDataSource.getRepository(Auth0User);
 const roleRepository = AppDataSource.getRepository(Role);
+const creatorFollowersRepository = AppDataSource.getRepository(CreatorFollower);
 
 
 
@@ -58,6 +59,11 @@ interface UserDataResponse {
 	wallets: Wallet[]
 
 	// Add any other properties if necessary
+}
+
+interface UserWithFollowStatus {
+    user: User;
+    followed: boolean;
 }
 // Service class for User
 @Service()
@@ -145,7 +151,7 @@ export class UserService {
 			if (userId) {
 				const user = await userRepository.findOne({
 					where: { id: userId },
-					relations: ['roles']
+					relations: ['roles','socialHandles']
 				});
 				if (!user) {
 					throw new NoRecordFoundError(MESSAGES.USER_NOT_EXIST);
@@ -470,5 +476,34 @@ export class UserService {
 			.catch(error => { logger.error(`[AuthenticationService][unLinkUser]  - error :${JSON.stringify(error)}`); });
 
 		return { success: true };
+	}
+	// Method to list all creators
+	public async listCreators(currentUser: User, searchParams: { limit?: number, offset?: number }): Promise<object> {
+		try {
+			logger.info(`[UserService][listCreators]  - ${JSON.stringify(searchParams)}`);
+			const options: FindManyOptions<User> = {
+				skip: searchParams.offset,
+				take: searchParams.limit,
+				where: { roles: { name: 'creator' } },
+				relations: ['roles']
+			};
+	
+			const [creators, count] = await userRepository.findAndCount(options);
+	
+			// Iterate through each creator to determine if the current user is following them
+			const creatorsWithFollowStatus: UserWithFollowStatus[] = await Promise.all(
+				creators.map(async (creator: User) => {
+					const isFollowing = await creatorFollowersRepository.findOne({
+						where: { creatorId: creator.id, id: currentUser.id }
+					});
+					return { user: creator, followed: !!isFollowing };
+				})
+			);
+	
+			return { count, creators: creatorsWithFollowStatus };
+		} catch (error) {
+			logger.error(`[UserService][listCreators] - Error : ${error}`);
+			throw error;
+		}
 	}
 }
